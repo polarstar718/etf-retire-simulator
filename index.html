@@ -3,20 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>올인원 노후 준비 ETF 복리 및 은퇴 시뮬레이터 (Excel Web Edition)</title>
+<title>올인원 노후 준비 ETF 복리 및 은퇴 시뮬레이터 (연금저축·IRP + 위탁계좌 절세 에디션)</title>
 <style>
   :root {
     --excel-green: #107c41;
     --excel-green-dark: #0c5e31;
-    --excel-green-light: #e6f2ec;
     --hdr-navy: #1f4e78;
+    --hdr-teal: #0f5f5c;
+    --hdr-purple: #4a3b7c;
     --sub-blue: #d9e1f2;
     --input-sky: #ddebf7;
-    --input-border: #5b9bd5;
     --calc-gray: #f2f2f2;
-    --key-yellow: #fff2cc;
+    --key-yellow: #fff2CC;
     --grid-border: #d4d4d4;
-    --row-hdr: #f8f9fa;
     --danger-bg: #ffe5e5;
     --danger-fg: #c00000;
     --ok-bg: #c6efce;
@@ -25,6 +24,8 @@
     --etf-voo: #e2efda;
     --etf-schd: #fce4d6;
     --etf-qld: #ede2f6;
+    --pen-bg: #e8f5e9;
+    --brk-bg: #eef2ff;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -50,9 +51,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     z-index: 20;
+    flex-wrap: wrap;
   }
   .brand {
     display: flex;
@@ -67,8 +69,7 @@
     font-weight: 900;
     border-radius: 4px;
     padding: 2px 7px;
-    font-size: 13px;
-    letter-spacing: 0.5px;
+    font-size: 12.5px;
   }
   .toolbar-actions {
     display: flex;
@@ -99,7 +100,7 @@
   }
   .btn.primary:hover { background: #e8f5ee; }
 
-  /* 엑셀 수식 입력줄 (Formula Bar) */
+  /* 엑셀 수식 입력줄 */
   .formulabar {
     display: flex;
     align-items: center;
@@ -111,7 +112,7 @@
     z-index: 15;
   }
   .cell-ref-box {
-    min-width: 92px;
+    min-width: 105px;
     padding: 3px 8px;
     border: 1px solid var(--grid-border);
     border-radius: 3px;
@@ -162,7 +163,7 @@
     display: block;
   }
 
-  /* 하단 시트 탭 바 (Excel 스타일) */
+  /* 하단 시트 탭 바 */
   .bottombar {
     background: #e9ecef;
     border-top: 1px solid #c8c8c8;
@@ -179,9 +180,10 @@
     align-items: flex-end;
     height: 100%;
     gap: 2px;
+    overflow-x: auto;
   }
   .sheet-tab {
-    padding: 6px 16px;
+    padding: 6px 14px;
     background: #dcdcdc;
     border: 1px solid #bfbfbf;
     border-bottom: none;
@@ -193,6 +195,7 @@
     align-items: center;
     gap: 6px;
     font-weight: 600;
+    white-space: nowrap;
   }
   .sheet-tab:hover { background: #e8e8e8; }
   .sheet-tab.active {
@@ -207,11 +210,12 @@
     color: #555;
     display: flex;
     gap: 14px;
+    white-space: nowrap;
   }
 
-  /* 엑셀 시트 타이포 및 그리드 */
+  /* 타이포 및 레이아웃 */
   .sheet-title {
-    font-size: 19px;
+    font-size: 18.5px;
     font-weight: 800;
     color: #1f3864;
     margin: 0 0 4px 0;
@@ -220,7 +224,7 @@
     font-size: 12px;
     color: #595959;
     font-style: italic;
-    margin: 0 0 14px 0;
+    margin: 0 0 12px 0;
   }
   .sec-title {
     font-size: 13.5px;
@@ -229,30 +233,33 @@
     margin: 14px 0 6px 0;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 6px;
   }
 
-  /* 대시보드 상단 그리드 */
-  .dash-grid {
+  .dash-grid-3 {
     display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 18px;
+    grid-template-columns: 380px 410px 1fr;
+    gap: 14px;
     align-items: start;
   }
-  @media (max-width: 1180px) {
-    .dash-grid { grid-template-columns: 1fr; }
+  @media (max-width: 1380px) {
+    .dash-grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 900px) {
+    .dash-grid-3 { grid-template-columns: 1fr; }
   }
 
   /* 엑셀 테이블 공통 */
   table.xl-table {
     border-collapse: collapse;
     width: 100%;
-    font-size: 12.5px;
+    font-size: 12px;
     background: #fff;
   }
   table.xl-table th, table.xl-table td {
     border: 1px solid #bfbfbf;
-    padding: 5px 8px;
+    padding: 4.5px 7px;
     vertical-align: middle;
   }
   table.xl-table th {
@@ -260,8 +267,11 @@
     color: #fff;
     font-weight: 700;
     text-align: center;
-    line-height: 1.3;
+    line-height: 1.25;
   }
+  table.xl-table th.teal { background: var(--hdr-teal); }
+  table.xl-table th.purple { background: var(--hdr-purple); }
+
   td.cell-input {
     background: var(--input-sky);
     padding: 0 !important;
@@ -271,25 +281,38 @@
     outline: 2px solid var(--excel-green);
     z-index: 2;
   }
-  td.cell-input input {
+  td.cell-input input[type="number"] {
     width: 100%;
     height: 100%;
     border: none;
     background: transparent;
-    padding: 5px 26px 5px 8px;
+    padding: 4.5px 28px 4.5px 7px;
     text-align: right;
     font-family: inherit;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     color: #0b3c68;
     outline: none;
+  }
+  td.cell-input select {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    padding: 4.5px 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0b3c68;
+    outline: none;
+    cursor: pointer;
   }
   td.cell-input .unit-suffix {
     position: absolute;
     right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 11px;
+    font-size: 10.5px;
     color: #4a6b8a;
     pointer-events: none;
     font-weight: 600;
@@ -309,23 +332,35 @@
     background: var(--sub-blue);
     font-weight: 700;
   }
+  td.cell-pen {
+    background: var(--pen-bg);
+    font-weight: 700;
+    color: #0d502c;
+  }
+  td.cell-brk {
+    background: var(--brk-bg);
+    font-weight: 700;
+    color: #1e3a8a;
+  }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
   .center { text-align: center; }
   .bold { font-weight: 700; }
-  .neg { color: #c00000; }
 
-  .badge-ok {
-    background: var(--ok-bg);
-    color: var(--ok-fg);
+  .badge-ok { background: var(--ok-bg); color: var(--ok-fg); font-weight: 700; text-align: center; }
+  .badge-err { background: var(--danger-bg); color: var(--danger-fg); font-weight: 700; text-align: center; }
+
+  .chip-group { display: inline-flex; gap: 4px; }
+  .preset-chip {
+    background: #eef4fa;
+    border: 1px solid #8ab4d8;
+    color: #1f4e78;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    cursor: pointer;
     font-weight: 700;
-    text-align: center;
   }
-  .badge-err {
-    background: var(--danger-bg);
-    color: var(--danger-fg);
-    font-weight: 700;
-    text-align: center;
-  }
+  .preset-chip:hover { background: #cfe4f7; }
 
   /* 차트 영역 */
   .charts-row {
@@ -345,13 +380,13 @@
   }
   .chart-card h4 {
     margin: 0 0 8px 0;
-    font-size: 13px;
+    font-size: 12.5px;
     color: #1f3864;
     text-align: center;
   }
   .chart-canvas-wrap {
     width: 100%;
-    height: 230px;
+    height: 235px;
     position: relative;
   }
   canvas.xl-chart {
@@ -360,9 +395,9 @@
     display: block;
   }
 
-  /* 대형 시뮬레이션 시트 스크롤 래퍼 (틀 고정) */
+  /* 대형 시뮬레이션 시트 스크롤 래퍼 */
   .grid-scroll {
-    max-height: calc(100vh - 190px);
+    max-height: calc(100vh - 195px);
     overflow: auto;
     border: 1px solid #bfbfbf;
     position: relative;
@@ -370,13 +405,13 @@
   table.sim-table {
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 12px;
+    font-size: 11.8px;
     min-width: max-content;
   }
   table.sim-table th, table.sim-table td {
     border-right: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
-    padding: 4px 8px;
+    padding: 4px 7px;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
@@ -390,10 +425,9 @@
     font-weight: 700;
   }
   table.sim-table thead tr:nth-child(2) th {
-    top: 27px;
+    top: 26px;
     z-index: 10;
   }
-  /* 첫 열 틀 고정 */
   table.sim-table th.sticky-col-1,
   table.sim-table td.sticky-col-1 {
     position: sticky;
@@ -418,6 +452,8 @@
   .etf-voo { background: var(--etf-voo) !important; color: #1f2328 !important; }
   .etf-schd { background: var(--etf-schd) !important; color: #1f2328 !important; }
   .etf-qld { background: var(--etf-qld) !important; color: #1f2328 !important; }
+  .pen-col { background: var(--pen-bg) !important; color: #0d502c !important; font-weight: 700; }
+  .brk-col { background: var(--brk-bg) !important; color: #1e3a8a !important; font-weight: 700; }
   .tot-col { background: var(--key-yellow) !important; color: #1f2328 !important; font-weight: 700; }
 
   [data-cell]:hover {
@@ -425,23 +461,23 @@
     cursor: cell;
   }
   .note-text {
-    font-size: 11.5px;
-    color: #595959;
+    font-size: 11.2px;
+    color: #555;
     font-style: italic;
-    margin-top: 6px;
+    margin-top: 5px;
     line-height: 1.45;
   }
-  .preset-chip {
-    background: #eef4fa;
-    border: 1px solid #b6cde5;
-    color: #1f4e78;
-    border-radius: 3px;
-    padding: 2px 7px;
-    font-size: 11px;
-    cursor: pointer;
-    font-weight: 600;
+  .tax-law-banner {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-left: 4px solid #0284c7;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #0c4a6e;
+    margin-bottom: 12px;
+    line-height: 1.5;
   }
-  .preset-chip:hover { background: #ddebf7; }
 </style>
 </head>
 <body>
@@ -449,15 +485,16 @@
   <!-- 상단 리본 바 -->
   <div class="topbar">
     <div class="brand">
-      <span class="brand-badge">XLSX WEB</span>
-      <span>올인원 노후 준비 ETF 복리 및 은퇴 시뮬레이터</span>
+      <span class="brand-badge">XLSX WEB v2.0</span>
+      <span>올인원 노후 준비 ETF 복리 & 은퇴 시뮬레이터 (개인연금 3.3~5.5% 절세 + 위탁계좌 통합)</span>
     </div>
     <div class="toolbar-actions">
-      <button class="btn" onclick="applyPreset('default')" title="질문에서 합의한 기본값으로 복원">↺ 기본값 복원 (월 200만 / 25년 뒤 은퇴)</button>
-      <button class="btn" onclick="applyPreset('optimistic')" title="최근 10년 실적 기반 낙관적 가정">📈 최근 10년 낙관 시나리오</button>
-      <button class="btn" onclick="applyPreset('deplete')" title="자산 고갈 테스트 (월 지출 1,500만)">⚠️ 고갈 테스트 (월 1,500만 지출)</button>
-      <button class="btn" onclick="saveToStorage()">💾 현재 설정 브라우저 저장</button>
-      <button class="btn" onclick="copyShareUrl()">🔗 현재 설정 공유 링크 복사</button>
+      <button class="btn" onclick="applyPreset('default')" title="연금 1,500만원 + 위탁 병행 기본값">↺ 기본값 (연금 1,500만 + 위탁)</button>
+      <button class="btn" onclick="applyPreset('pen1800')" title="연금계좌 최대 한도 연 1,800만원">🏦 연금 1,800만 한도 풀채우기</button>
+      <button class="btn" onclick="applyPreset('pen1200')" title="연금계좌 연 1,200만원 (월 100만)">🏦 연금 1,200만 (월 100만)</button>
+      <button class="btn" onclick="applyPreset('onlyBroker')" title="연금 0원, 100% 위탁계좌만 운용">📊 100% 위탁계좌만 운용</button>
+      <button class="btn" onclick="saveToStorage()">💾 설정 저장</button>
+      <button class="btn" onclick="copyShareUrl()">🔗 설정 공유 링크</button>
       <button class="btn primary" onclick="exportToCsv()">📥 현재 시트 CSV 저장</button>
     </div>
   </div>
@@ -466,197 +503,272 @@
   <div class="formulabar">
     <div class="cell-ref-box" id="fb-ref">C6</div>
     <span class="fx-icon">fx</span>
-    <div class="formula-text" id="fb-formula">200 (월 총 적립 투자금, 만원 단위 입력)</div>
-    <div class="formula-desc" id="fb-desc">하늘색 셀을 클릭해 숫자를 바꾸면 모든 시트가 즉시 재계산됩니다.</div>
+    <div class="formula-text" id="fb-formula">하늘색 입력 셀을 클릭해 값을 수정하면 개인연금 계좌와 위탁계좌가 동시에 재계산됩니다.</div>
+    <div class="formula-desc" id="fb-desc">2025 외국납부세액 개편 반영 완료</div>
   </div>
 
   <!-- 본문 시트 영역 -->
   <div class="workbook-body">
     <!-- ==================== SHEET 1: 대시보드_및_설정 ==================== -->
     <div class="sheet-pane active" id="sheet-1">
-      <h1 class="sheet-title">올인원 노후 준비 ETF 복리 및 은퇴 시뮬레이터</h1>
-      <p class="sheet-subtitle">하늘색 셀만 바꾸면 3개 시트와 차트가 즉시 재계산됩니다. 회색/노란색 셀은 자동 계산 수식 셀이며 금액 단위는 원(₩)입니다.</p>
+      <h1 class="sheet-title">올인원 노후 준비 ETF 복리 및 은퇴 시뮬레이터 (개인연금 + 일반 위탁계좌 이원화)</h1>
+      <div class="tax-law-banner">
+        <strong>💡 2025년 개정 세법(외국납부세액공제 개편) 완벽 반영 안내 (세액공제 환급금 제외):</strong><br/>
+        • <strong>운용 중 배당소득세:</strong> 2025년부터 국세청 선환급 폐지로 <strong>개인연금 계좌 내 해외ETF 분배금도 미국 현지 원천징수세율(15.0%)이 차감</strong>된 후 재투자됩니다(위탁계좌 15.4% 대비 0.4%p 절세).<br/>
+        • <strong>주가 상승분(매매차익) 과세이연 & 저율 연금소득세:</strong> 반면 <strong>ETF 매매차익(주가 상승분)</strong>은 운용 중 세금 0%로 과세이연되며, 은퇴 후 인출 시 <strong>위탁계좌는 양도소득세 22%(연 250만 원 공제)</strong>를 내는 반면, <strong>개인연금 계좌는 ① 납입원금(세액공제 미적용분) 0% 비과세 인출 + ② 운용수익분만 연령별 3.3%~5.5% 저율 연금소득세(연 1,500만 원 한도)</strong>가 적용됩니다.
+      </div>
 
-      <div class="dash-grid">
-        <!-- 좌측: ① 기본 투자 설정 + ② 은퇴 및 인출 설정 -->
+      <div class="dash-grid-3">
+        <!-- 컬럼 1: ① 기본 투자 설정 + ② 은퇴 및 인출 설정 -->
         <div>
-          <div class="sec-title">① 기본 투자 설정 (Sheet1!B5:C11)</div>
+          <div class="sec-title">① 기본 적립 & 은퇴 설정 (Sheet1!B5:C16)</div>
           <table class="xl-table">
             <thead>
-              <tr><th style="width:62%">항목 (열 B)</th><th style="width:38%">설정값 (열 C)</th></tr>
+              <tr><th style="width:62%">항목</th><th style="width:38%">설정값</th></tr>
             </thead>
             <tbody>
               <tr>
-                <td data-cell="B5" data-fx="초기 거치금 (원)">초기 거치금 (원)</td>
-                <td class="cell-input" data-cell="C5" data-fx="입력값: 초기 일시 거치 투자금 (원)">
+                <td data-cell="B5" data-fx="초기 거치금 (위탁계좌 투입, 원)">초기 거치금 (원)</td>
+                <td class="cell-input" data-cell="C5" data-fx="입력값: 초기 일시 거치금 (원)">
                   <input type="number" id="in-init" value="0" step="1000000" min="0" />
                   <span class="unit-suffix">원</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B6" data-fx="월 총 적립 투자금 (만원)">월 총 적립 투자금 (만원)</td>
-                <td class="cell-input" data-cell="C6" data-fx="입력값: 매월 적립할 투자 금액 (만원)">
+                <td data-cell="B6" data-fx="월 총 적립 투자금 (연금+위탁 합산, 만원)">월 총 적립 투자금 (만원)</td>
+                <td class="cell-input" data-cell="C6" data-fx="입력값: 매월 적립할 총 투자 금액 (만원)">
                   <input type="number" id="in-monthly-man" value="200" step="10" min="0" />
                   <span class="unit-suffix">만원</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B7" data-fx="월 총 적립 투자금 (원, 자동 변환)">월 총 적립 투자금 (원, 자동 변환)</td>
-                <td class="cell-calc" id="out-monthly-won" data-cell="C7" data-fx="=C6*10000">2,000,000원</td>
+                <td data-cell="B7" data-fx="=C6*12*10000">1년 차 연간 총 적립금 (자동)</td>
+                <td class="cell-calc" id="out-yr1-total" data-cell="C7" data-fx="=C6*12*10000">24,000,000원</td>
               </tr>
               <tr>
-                <td data-cell="B8" data-fx="매년 월 투자금 증액률 (%)">매년 월 투자금 증액률</td>
-                <td class="cell-input" data-cell="C8" data-fx="입력값: 매년 월 적립금을 늘리는 비율 (%)">
+                <td data-cell="B8" data-fx="매년 월 총 투자금 증액률 (%)">매년 월 투자금 증액률</td>
+                <td class="cell-input" data-cell="C8" data-fx="입력값: 매년 월 총 적립금을 늘리는 비율 (%)">
                   <input type="number" id="in-inc-rate" value="3.0" step="0.5" />
                   <span class="unit-suffix">%</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B9" data-fx="배당금 재투자 비율 (0~100%)">배당금 재투자 비율 (0~100%)</td>
-                <td class="cell-input" data-cell="C9" data-fx="입력값: 세후 배당금 중 재투자하는 비율 (0~100%)">
+                <td data-cell="B9" data-fx="위탁계좌 배당금 재투자 비율 (연금계좌는 계좌 내 100% 재투자)">위탁계좌 배당 재투자율</td>
+                <td class="cell-input" data-cell="C9" data-fx="입력값: 위탁계좌 세후 배당금 재투자 비율 (0~100%)">
                   <input type="number" id="in-reinv-rate" value="100" step="5" min="0" max="100" />
                   <span class="unit-suffix">%</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B10" data-fx="배당소득세율 (기본 15.4%)">배당소득세율</td>
-                <td class="cell-input" data-cell="C10" data-fx="입력값: 미국 ETF 배당소득세율 (기본 15.4%)">
-                  <input type="number" id="in-div-tax" value="15.4" step="0.1" min="0" max="100" />
-                  <span class="unit-suffix">%</span>
-                </td>
-              </tr>
-              <tr>
-                <td data-cell="B11" data-fx="현재 나이 (만 나이)">현재 나이 (만 나이)</td>
-                <td class="cell-input" data-cell="C11" data-fx="입력값: 투자 시작 시점 만 나이">
+                <td data-cell="B10" data-fx="현재 나이 (만 나이)">현재 나이 (만 나이)</td>
+                <td class="cell-input" data-cell="C10" data-fx="입력값: 투자 시작 시점 만 나이">
                   <input type="number" id="in-age" value="35" step="1" min="0" max="100" />
                   <span class="unit-suffix">세</span>
                 </td>
               </tr>
-            </tbody>
-          </table>
-
-          <div class="sec-title">② 은퇴 및 인출 설정 (Sheet1!B14:C21)</div>
-          <table class="xl-table">
-            <thead>
-              <tr><th style="width:62%">항목 (열 B)</th><th style="width:38%">설정값 (열 C)</th></tr>
-            </thead>
-            <tbody>
               <tr>
-                <td data-cell="B14" data-fx="은퇴 목표 시점 (투자 시작 후 N년 뒤)">은퇴 목표 시점 (투자 시작 후 N년 뒤)</td>
-                <td class="cell-input" data-cell="C14" data-fx="입력값: 투자 시작 후 은퇴까지 걸리는 연수 (1~50년)">
+                <td data-cell="B11" data-fx="은퇴 목표 시점 (투자 시작 후 N년 뒤)">은퇴 목표 시점 (N년 뒤)</td>
+                <td class="cell-input" data-cell="C11" data-fx="입력값: 은퇴까지 걸리는 연수 (1~50년)">
                   <input type="number" id="in-ret-year" value="25" step="1" min="1" max="50" />
                   <span class="unit-suffix">년 뒤</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B15" data-fx="은퇴 후 희망 월 지출액 (현재 가치, 원)">은퇴 후 희망 월 지출액 (현재 가치, 원)</td>
-                <td class="cell-input" data-cell="C15" data-fx="입력값: 현재 물가 기준 은퇴 후 희망 월 생활비 (원)">
+                <td data-cell="B12" data-fx="=C10+C11">은퇴 시점 나이 (자동)</td>
+                <td class="cell-calc" id="out-ret-age" data-cell="C12" data-fx="=C10+C11">60세</td>
+              </tr>
+              <tr>
+                <td data-cell="B13" data-fx="은퇴 후 희망 월 지출액 (현재 가치, 원)">은퇴 후 희망 월 지출 (현재가치)</td>
+                <td class="cell-input" data-cell="C13" data-fx="입력값: 현재 가치 기준 은퇴 후 월 희망 생활비 (원)">
                   <input type="number" id="in-ret-spend" value="4000000" step="100000" min="0" />
                   <span class="unit-suffix">원</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B16" data-fx="물가상승률 (인플레이션)">물가상승률 (인플레이션)</td>
-                <td class="cell-input" data-cell="C16" data-fx="입력값: 연평균 물가상승률 (%)">
+                <td data-cell="B14" data-fx="물가상승률 (인플레이션, %)">물가상승률 (인플레이션)</td>
+                <td class="cell-input" data-cell="C14" data-fx="입력값: 연평균 물가상승률 (%)">
                   <input type="number" id="in-infl" value="2.5" step="0.1" />
                   <span class="unit-suffix">%</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B17" data-fx="은퇴 후 주가성장률 할인폭 (%p)">은퇴 후 주가성장률 할인폭 (%p)</td>
-                <td class="cell-input" data-cell="C17" data-fx="입력값: 은퇴 후 보수적 운용을 위해 종목별 CAGR에서 차감할 %p">
+                <td data-cell="B15" data-fx="은퇴 후 주가성장률 할인폭 (%p)">은퇴 후 주가성장률 할인폭</td>
+                <td class="cell-input" data-cell="C15" data-fx="입력값: 은퇴 후 종목별 CAGR에서 차감할 보수적 할인폭 (%p)">
                   <input type="number" id="in-ret-disc" value="2.5" step="0.5" />
                   <span class="unit-suffix">%p</span>
                 </td>
               </tr>
               <tr>
-                <td data-cell="B18" data-fx="해외주식 양도소득세율 (기본 22%)">해외주식 양도소득세율</td>
-                <td class="cell-input" data-cell="C18" data-fx="입력값: 자산 매도 시 양도차익에 부과되는 세율 (기본 22%)">
-                  <input type="number" id="in-cgt-rate" value="22.0" step="1" min="0" max="100" />
-                  <span class="unit-suffix">%</span>
-                </td>
-              </tr>
-              <tr>
-                <td data-cell="B19" data-fx="양도세 연간 기본공제 (원)">양도세 연간 기본공제 (원)</td>
-                <td class="cell-input" data-cell="C19" data-fx="입력값: 해외주식 양도소득세 연간 기본공제액 (기본 250만원)">
-                  <input type="number" id="in-cgt-ded" value="2500000" step="500000" min="0" />
-                  <span class="unit-suffix">원</span>
-                </td>
-              </tr>
-              <tr>
-                <td data-cell="B20" data-fx="은퇴 시점 나이 (자동)">은퇴 시점 나이 (자동)</td>
-                <td class="cell-calc" id="out-ret-age" data-cell="C20" data-fx="=C11+C14">60세</td>
-              </tr>
-              <tr>
-                <td data-cell="B21" data-fx="은퇴 첫해 월 지출액 (물가 반영, 자동)">은퇴 첫해 월 지출액 (물가 반영, 자동)</td>
-                <td class="cell-calc" id="out-ret-first-month" data-cell="C21" data-fx="=C15*(1+C16)^C14">0원</td>
+                <td data-cell="B16" data-fx="=C13*(1+C14)^C11">은퇴 첫해 월 지출액 (물가 반영)</td>
+                <td class="cell-calc" id="out-ret-first-month" data-cell="C16" data-fx="=C13*(1+C14)^C11">0원</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- 우측: ③ 포트폴리오 4대 ETF 설정 + ④ 핵심 결과 요약 -->
+        <!-- 컬럼 2: ② 개인연금 계좌 vs 위탁계좌 세제 설정 -->
         <div>
-          <div class="sec-title">③ 포트폴리오 4대 ETF 개별 설정 (Sheet1!E5:I11)</div>
+          <div class="sec-title">
+            <span>② 개인연금 vs 위탁계좌 절세 설정</span>
+            <span class="chip-group">
+              <button class="preset-chip" onclick="setPenCap(1200)">연 1,200만</button>
+              <button class="preset-chip" onclick="setPenCap(1500)">연 1,500만</button>
+              <button class="preset-chip" onclick="setPenCap(1800)">연 1,800만</button>
+            </span>
+          </div>
+          <table class="xl-table">
+            <thead>
+              <tr><th class="teal" style="width:62%">연금 · 위탁 세제 항목</th><th class="teal" style="width:38%">설정값</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-cell="E5" data-fx="개인연금(연금저축+IRP) 연간 우선 납입 목표액 (만원)"><strong>개인연금 연간 납입액 (만원)</strong></td>
+                <td class="cell-input" data-cell="F5" data-fx="입력값: 매년 개인연금 계좌에 우선 납입할 금액 (예: 1200~1800만원)">
+                  <input type="number" id="in-pen-cap-man" value="1500" step="100" min="0" max="1800" />
+                  <span class="unit-suffix">만원/년</span>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E6" data-fx="1년 차 기준 연금계좌 / 위탁계좌 월 납입 배분">1년 차 월 납입 배분 (연금 / 위탁)</td>
+                <td class="cell-calc" id="out-yr1-split" data-cell="F6" data-fx="=MIN(월투자,연금한도/12) / 나머지">125만 / 75만</td>
+              </tr>
+              <tr>
+                <td data-cell="E7" data-fx="2025 개정세법: 연금계좌 내 해외ETF 배당 원천징수세율 (미국 현지 15.0%)">연금계좌 운용중 배당세율 (25년 개편)</td>
+                <td class="cell-input" data-cell="F7" data-fx="입력값: 2025 외국납부세액 개편 반영 미국 원천징수 15.0% (과거 기준 비교시 0% 입력 가능)">
+                  <input type="number" id="in-pen-div-tax" value="15.0" step="0.1" min="0" max="100" />
+                  <span class="unit-suffix">%</span>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E8" data-fx="일반 위탁계좌 배당소득세율 (기본 15.4%)">위탁계좌 배당소득세율</td>
+                <td class="cell-input" data-cell="F8" data-fx="입력값: 일반 위탁계좌 배당소득세율 (15.4%)">
+                  <input type="number" id="in-brk-div-tax" value="15.4" step="0.1" min="0" max="100" />
+                  <span class="unit-suffix">%</span>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E9" data-fx="연금소득세율 (만 55~69세 5.5%, 70~79세 4.4%, 80세 이상 3.3%)">연령별 연금소득세 (55~69/70~79/80+)</td>
+                <td class="cell-calc" data-cell="F9" data-fx="55~69세: 5.5% / 70~79세: 4.4% / 80세+: 3.3%">5.5% → 4.4% → 3.3%</td>
+              </tr>
+              <tr>
+                <td data-cell="E10" data-fx="연금계좌 과세대상 수익 인출 시 저율 분리과세 연간 한도 (기본 1,500만원)">연금 저율과세 연간 한도 (만원)</td>
+                <td class="cell-input" data-cell="F10" data-fx="입력값: 사적연금 저율 분리과세(3.3~5.5%) 연간 한도 (만원, 세법 기준 1500만원)">
+                  <input type="number" id="in-pen-lowtax-cap" value="1500" step="100" min="0" />
+                  <span class="unit-suffix">만원/년</span>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E11" data-fx="연금 인출 과세 방식: 세액공제 안 받은 원금 비과세 후 수익만 과세 vs 인출액 전체 과세">연금 원금 비과세 적용 여부</td>
+                <td class="cell-input" data-cell="F11" data-fx="선택: 세액공제 미적용 납입원금 0% 비과세 우선인출 여부">
+                  <select id="in-pen-basis-rule">
+                    <option value="taxfree_basis" selected>납입원금 0% 비과세 우선인출 (실제 세법)</option>
+                    <option value="all_taxable">원금 포함 인출액 전체에 3.3~5.5% 과세 (보수적)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E12" data-fx="은퇴 후 두 계좌 간 생활비 인출 순서 전략">은퇴 후 계좌 인출 순서 전략</td>
+                <td class="cell-input" data-cell="F12" data-fx="선택: 은퇴 후 연금계좌와 위탁계좌에서 생활비를 꺼내 쓰는 순서">
+                  <select id="in-withdraw-order">
+                    <option value="tax_optimal" selected>① 절세 최적화 (연금 비과세/저율한도 → 위탁 → 연금초과)</option>
+                    <option value="broker_first">② 위탁계좌 우선 소진 (22% 과세계좌 먼저 소진 후 연금 개시)</option>
+                    <option value="pension_first">③ 연금계좌 전액 우선 소진 (연금 먼저 다 쓴 뒤 위탁 인출)</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E13" data-fx="일반 위탁계좌 해외주식 양도소득세율 (기본 22%)">위탁계좌 해외주식 양도세율</td>
+                <td class="cell-input" data-cell="F13" data-fx="입력값: 위탁계좌 매도 차익 양도소득세율 (기본 22%)">
+                  <input type="number" id="in-cgt-rate" value="22.0" step="1" min="0" max="100" />
+                  <span class="unit-suffix">%</span>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E14" data-fx="위탁계좌 양도소득세 연간 기본공제액 (기본 250만원)">위탁계좌 양도세 기본공제 (원)</td>
+                <td class="cell-input" data-cell="F14" data-fx="입력값: 해외주식 양도세 연간 기본공제 (250만원)">
+                  <input type="number" id="in-cgt-ded" value="2500000" step="500000" min="0" />
+                  <span class="unit-suffix">원</span>
+                </td>
+              </tr>
+              <tr>
+                <td data-cell="E15" data-fx="국내 연금계좌 규정상 레버리지(QLD) 편입 불가 규정을 적용할지 여부">연금계좌 QLD(레버리지) 제한</td>
+                <td class="cell-input" data-cell="F15" data-fx="선택: 연금계좌에서 QLD 비중을 QQQ/VOO로 자동 대체할지 여부">
+                  <select id="in-pen-no-qld">
+                    <option value="same" selected>위탁계좌와 동일한 비중으로 계산</option>
+                    <option value="no_qld">연금계좌는 QLD 제외 (QQQ·VOO·SCHD로 비례 배분)</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 컬럼 3: ③ 포트폴리오 4대 ETF 설정 + ④ 절세 효과 & 핵심 결과 요약 -->
+        <div>
+          <div class="sec-title">③ 포트폴리오 4대 ETF 설정 (Sheet1!H5:L11)</div>
           <table class="xl-table">
             <thead>
               <tr>
-                <th style="width:16%">종목 (E)</th>
-                <th style="width:21%">투자 비중 (F)</th>
-                <th style="width:21%">주가 CAGR<br/>(배당 제외, G)</th>
-                <th style="width:21%">현재 시가배당률 (H)</th>
-                <th style="width:21%">배당 성장률 (I)</th>
+                <th style="width:16%">종목</th>
+                <th style="width:21%">투자 비중</th>
+                <th style="width:21%">주가 CAGR<br/>(배당 제외)</th>
+                <th style="width:21%">현재 배당률</th>
+                <th style="width:21%">배당 성장률</th>
               </tr>
             </thead>
-            <tbody id="etf-tbody">
-              <!-- JS에서 렌더링 -->
-            </tbody>
+            <tbody id="etf-tbody"></tbody>
             <tfoot>
               <tr>
-                <td class="cell-sub center" data-cell="E10">합계 / 가중평균</td>
-                <td class="cell-sub num" id="out-w-sum" data-cell="F10" data-fx="=SUM(F6:F9)">100.0%</td>
-                <td class="cell-sub num" id="out-g-avg" data-cell="G10" data-fx="=SUMPRODUCT($F$6:$F$9,G6:G9)">7.85%</td>
-                <td class="cell-sub num" id="out-y-avg" data-cell="H10" data-fx="=SUMPRODUCT($F$6:$F$9,H6:H9)">1.66%</td>
-                <td class="cell-sub num" id="out-dg-avg" data-cell="I10" data-fx="=SUMPRODUCT($F$6:$F$9,I6:I9)">6.60%</td>
+                <td class="cell-sub center">합계/평균</td>
+                <td class="cell-sub num" id="out-w-sum">100.0%</td>
+                <td class="cell-sub num" id="out-g-avg">7.85%</td>
+                <td class="cell-sub num" id="out-y-avg">1.66%</td>
+                <td class="cell-sub num" id="out-dg-avg">6.60%</td>
               </tr>
               <tr>
-                <td class="bold center" data-cell="E11">비중 합계 검사</td>
-                <td colspan="4" id="out-w-check" class="badge-ok" data-cell="F11" data-fx='=IF(ROUND(F10,4)=1,"✅ 합계 100% 정상","⚠️ 합계 오류")'>✅ 합계 100% 정상</td>
+                <td class="bold center">비중 검사</td>
+                <td colspan="4" id="out-w-check" class="badge-ok">✅ 합계 100% 정상</td>
               </tr>
             </tfoot>
           </table>
-          <div class="note-text">※ 주가 CAGR은 배당을 제외한 순수 가격 상승률입니다. 연차별 배당률 = 현재배당률 × ((1+배당성장률)/(1+주가CAGR))^(연차-1)로 계산되어 장기 복리 왜곡을 방지합니다.</div>
 
-          <div class="sec-title" style="margin-top:18px;">④ 핵심 결과 요약 (Sheet1!B24:F30)</div>
+          <div class="sec-title" style="margin-top:12px;">④ 개인연금 병행 vs 100% 위탁계좌 절세 효과 요약</div>
           <table class="xl-table">
+            <thead>
+              <tr>
+                <th class="purple" style="width:42%">핵심 비교 지표</th>
+                <th class="purple" style="width:30%">연금 + 위탁 병행</th>
+                <th class="purple" style="width:28%">100% 위탁 단독</th>
+              </tr>
+            </thead>
             <tbody>
               <tr>
-                <td class="bold" style="width:46%" data-cell="B24">은퇴 시점 평가 자산 (명목)</td>
-                <td class="cell-key" id="key-ret-nominal" data-cell="C24" data-fx="=INDEX('연차별_자산성장_시뮬레이션'!$AT$6:$AT$55,$C$14)">0원</td>
+                <td class="bold">은퇴 시점 총 평가자산 (명목)</td>
+                <td class="cell-pen num" id="cmp-ret-dual">-</td>
+                <td class="cell-calc num" id="cmp-ret-brk">-</td>
               </tr>
               <tr>
-                <td class="bold" data-cell="B25">은퇴 시점 자산 (현재 가치 환산)</td>
-                <td class="cell-key" id="key-ret-real" data-cell="C25" data-fx="=C24/(1+C16)^C14">0원</td>
+                <td class="bold">└ 은퇴 시점 계좌별 자산 (연금 / 위탁)</td>
+                <td colspan="2" class="cell-key center" id="cmp-ret-split">-</td>
               </tr>
               <tr>
-                <td class="bold" data-cell="B26">은퇴 직전 해 연간 세후 배당금</td>
-                <td class="cell-key" id="key-ret-div" data-cell="C26" data-fx="=INDEX('연차별_자산성장_시뮬레이션'!$AO$6:$AO$55,$C$14)">0원</td>
+                <td class="bold">은퇴 후 60년간 총 납부 세금 합계<br/><span style="font-weight:400;font-size:10.5px;">(은퇴후 배당세+양도세+연금소득세)</span></td>
+                <td class="cell-pen num" id="cmp-tax-dual">-</td>
+                <td class="cell-calc num" id="cmp-tax-brk">-</td>
               </tr>
               <tr>
-                <td class="bold" data-cell="B27">은퇴 첫해 연간 생활비 (물가 반영)</td>
-                <td class="cell-key" id="key-ret-spend-yr" data-cell="C27" data-fx="=C21*12">0원</td>
+                <td class="bold">💰 생애 누적 절세 이득 (세금 절감액)</td>
+                <td colspan="2" class="badge-ok" style="font-size:13px;" id="cmp-tax-saved">-</td>
               </tr>
               <tr>
-                <td class="bold" data-cell="B28">은퇴 첫해 배당으로 생활비를 메우는 비율</td>
-                <td class="cell-key" id="key-div-cover" data-cell="C28" data-fx="=IFERROR('은퇴후_현금흐름_및_고갈시점'!L13/'은퇴후_현금흐름_및_고갈시점'!G13,0)">0.0%</td>
+                <td class="bold">투자 40년 차 실제 잔액 (은퇴 15년 후)</td>
+                <td class="cell-pen num" id="cmp-y40-dual">-</td>
+                <td class="cell-calc num" id="cmp-y40-brk">-</td>
               </tr>
               <tr>
-                <td class="bold" data-cell="B29">자산 고갈 예상 시점</td>
-                <td class="cell-key center" style="font-size:14px;" id="key-depletion" data-cell="C29" data-fx="='은퇴후_현금흐름_및_고갈시점'!C3">-</td>
-              </tr>
-              <tr>
-                <td class="bold" data-cell="B30">자본 잠식 여부</td>
-                <td class="cell-key center" id="key-erosion" data-cell="C30" data-fx="='은퇴후_현금흐름_및_고갈시점'!C4">-</td>
+                <td class="bold">자산 고갈 예상 시점</td>
+                <td class="cell-key center" id="cmp-dep-dual">-</td>
+                <td class="cell-calc center" id="cmp-dep-brk">-</td>
               </tr>
             </tbody>
           </table>
@@ -664,41 +776,44 @@
       </div>
 
       <!-- ⑤ 단기/중기/장기 마일스톤 요약 보드 -->
-      <div class="sec-title" style="margin-top:20px;">⑤ 단기 · 중기 · 장기 마일스톤 요약표 (Sheet1!B33:K42)</div>
+      <div class="sec-title" style="margin-top:18px;">⑤ 단기 · 중기 · 장기 마일스톤 요약표 (개인연금 + 위탁계좌 분리 표시 및 100% 위탁 단독 대비 이득)</div>
       <table class="xl-table" id="milestone-table">
         <thead>
           <tr>
-            <th>구분 (B)</th>
-            <th>경과 연수 (C)</th>
-            <th>나이 (D)</th>
-            <th>누적 원금 (E)</th>
-            <th>평가 자산 총액 (F)</th>
-            <th>연간 세후 배당금 (G)</th>
-            <th>월평균 배당 현금흐름 (H)</th>
-            <th>총 수익률 (I)</th>
-            <th>은퇴 후 실제 잔액 (J)<br/><span style="font-weight:400;font-size:11px;">(Sheet3 인출 반영)</span></th>
-            <th>실제 잔액 현재가치 (K)</th>
+            <th>구분</th>
+            <th>경과 연수</th>
+            <th>나이</th>
+            <th>누적 원금<br/>(연금+위탁)</th>
+            <th class="teal">개인연금 자산<br/>(적립시나리오)</th>
+            <th>위탁계좌 자산<br/>(적립시나리오)</th>
+            <th>합산 평가자산<br/>(계속 적립 시)</th>
+            <th>연간 세후배당<br/>(연금+위탁)</th>
+            <th class="purple">은퇴후 실제 합산잔액<br/>(연금+위탁, Sheet3)</th>
+            <th class="purple">└ 실제 개인연금 잔액</th>
+            <th class="purple">└ 실제 위탁계좌 잔액</th>
+            <th>100% 위탁 단독시<br/>실제 잔액</th>
+            <th>연금 병행으로 늘어난<br/>순자산 이득 (+)</th>
           </tr>
         </thead>
         <tbody id="milestone-tbody"></tbody>
       </table>
       <div class="note-text">
-        ※ 누적 원금 ~ 총 수익률(E~I열)은 은퇴하지 않고 50년 동안 계속 적립했을 때의 순수 복리 시나리오(Sheet 2) 값입니다. 노란색 강조 행(은퇴 시점 이후)의 J~K열은 은퇴 후 생활비와 세금을 빼고 남은 실제 자산 잔액(Sheet 3)입니다.
+        ※ 노란색 강조 구간(은퇴 목표 연차 이후)의 '은퇴후 실제 합산잔액'은 매년 물가상승률을 반영한 생활비를 인출하고 남은 실제 잔액입니다. 우측 끝 열에서 100% 위탁계좌로만 운용했을 때 대비 개인연금(3.3~5.5% 저율과세·비과세 원금·과세이연)을 섞었을 때 순자산이 얼마나 더 남는지 바로 확인할 수 있습니다.
       </div>
 
       <!-- 차트 3종 -->
       <div class="charts-row">
         <div class="chart-card">
-          <h4>📈 적립기 자산 성장 (평가 자산 vs 누적 원금, 1~50년)</h4>
+          <h4>📈 적립기 계좌별 자산 성장 (개인연금 + 위탁계좌 합산 vs 누적 원금)</h4>
           <div class="chart-canvas-wrap"><canvas id="chart-acc" class="xl-chart"></canvas></div>
         </div>
         <div class="chart-card">
-          <h4>🏖️ 은퇴 후 자산 잔액 및 연간 생활비 추이 (60년)</h4>
+          <h4>🏖️ 은퇴 후 자산 잔액 비교 (연금+위탁 병행 vs 100% 위탁 단독)</h4>
           <div class="chart-canvas-wrap"><canvas id="chart-dec" class="xl-chart"></canvas></div>
         </div>
         <div class="chart-card">
-          <h4>💰 마일스톤별 연간 세후 배당금</h4>
-          <div class="chart-canvas-wrap"><canvas id="chart-div" class="xl-chart"></canvas></div>
+          <h4>💰 은퇴 후 연차별 납부 세금 비교 (연금+위탁 병행 vs 100% 위탁)</h4>
+          <div class="chart-canvas-wrap"><canvas id="chart-tax" class="xl-chart"></canvas></div>
         </div>
       </div>
     </div>
@@ -707,13 +822,13 @@
     <div class="sheet-pane" id="sheet-2">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div>
-          <h1 class="sheet-title">연차별 자산 성장 시뮬레이션 (1~50년 차, Sheet 2)</h1>
-          <p class="sheet-subtitle">매달 초 납입 FV(월수익률, 12, -월납입액, 0, 1) 적용 · 신규 납입 배당 13/24 반영 · 노란색 행 = 설정한 은퇴 목표 연차</p>
+          <h1 class="sheet-title">연차별 자산 성장 시뮬레이션 (1~50년 차: 개인연금 계좌 + 일반 위탁계좌 분리 추적)</h1>
+          <p class="sheet-subtitle">매년 총 투자금 중 개인연금 목표액(연 1,200~1,800만 원)을 먼저 연금계좌에 납입(미국 배당세 15.0% 차감 후 100% 재투자)하고, 나머지를 위탁계좌(배당세 15.4%)에 납입합니다.</p>
         </div>
         <div>
           <label style="font-weight:700;font-size:12px;cursor:pointer;">
-            <input type="checkbox" id="toggle-etf-detail" checked onchange="renderSheet2()" />
-            4대 ETF(QQQ·VOO·SCHD·QLD) 개별 32개 열 모두 펼치기
+            <input type="checkbox" id="toggle-etf-detail" onchange="renderSheet2()" />
+            4대 ETF(QQQ·VOO·SCHD·QLD) 종목별 세부 열 펼치기
           </label>
         </div>
       </div>
@@ -728,98 +843,41 @@
 
     <!-- ==================== SHEET 3: 은퇴후_현금흐름_및_고갈시점 ==================== -->
     <div class="sheet-pane" id="sheet-3">
-      <h1 class="sheet-title">은퇴 후 현금흐름 및 자산 고갈 시점 (은퇴 후 60년 추적, Sheet 3)</h1>
-      <p class="sheet-subtitle">매년 초 생활비 인출: 세후 배당금 우선 충당 → 부족분은 양도소득세(22%, 기본공제 250만 원 반영)까지 고려해 자산 매도 · 잉여 배당은 재투자</p>
+      <h1 class="sheet-title">은퇴 후 현금흐름 및 계좌별 인출 · 절세 시뮬레이션 (은퇴 후 60년 추적, Sheet 3)</h1>
+      <p class="sheet-subtitle">개인연금 계좌(비과세 납입원금 0% + 운용수익 3.3~5.5% 연금소득세)와 위탁계좌(배당 15.4% + 매도차익 양도소득세 22%)의 연차별 인출액·세금·잔액을 상세 추적합니다.</p>
 
-      <div class="dash-grid" style="margin-bottom:14px;">
-        <div>
-          <table class="xl-table">
-            <tbody>
-              <tr>
-                <td class="bold" style="width:42%" data-cell="Sheet3!B3">자산 고갈 예상 시점</td>
-                <td class="cell-key center" style="font-size:13.5px;" id="s3-depletion" data-cell="Sheet3!C3" data-fx='=IFERROR("은퇴 후 "&MATCH("고갈",$S$13:$S$72,0)&"년 차에 자산 고갈","영구 지속 (자본 잠식 없음)")'>-</td>
-              </tr>
-              <tr>
-                <td class="bold" data-cell="Sheet3!B4">자본 잠식 여부</td>
-                <td class="cell-key center" id="s3-erosion" data-cell="Sheet3!C4">-</td>
-              </tr>
-              <tr>
-                <td data-cell="Sheet3!B5">은퇴 시점</td>
-                <td class="cell-calc" id="s3-ret-point" data-cell="Sheet3!C5" data-fx='="투자 "&대시보드!$C$14&"년 차 말"'>-</td>
-              </tr>
-              <tr>
-                <td data-cell="Sheet3!B6">시작 자산 (은퇴 시점 기말 총자산)</td>
-                <td class="cell-calc" id="s3-start-asset" data-cell="Sheet3!C6" data-fx="=INDEX(Sheet2!$AT$6:$AT$55,대시보드!$C$14)">-</td>
-              </tr>
-              <tr>
-                <td data-cell="Sheet3!B7">시작 취득원가 (누적 원금 + 누적 재투자)</td>
-                <td class="cell-calc" id="s3-start-basis" data-cell="Sheet3!C7" data-fx="=INDEX(Sheet2!$E$6:$E$55,N)+INDEX(Sheet2!$AR$6:$AR$55,N)">-</td>
-              </tr>
-              <tr>
-                <td data-cell="Sheet3!B8">은퇴 후 가중평균 주가성장률 (할인 반영)</td>
-                <td class="cell-calc" id="s3-avg-g" data-cell="Sheet3!C8" data-fx="=SUMPRODUCT($J$4:$J$7,L4:L7)">-</td>
-              </tr>
-              <tr>
-                <td data-cell="Sheet3!B9">은퇴 후 가중평균 배당률 (세전)</td>
-                <td class="cell-calc" id="s3-avg-y" data-cell="Sheet3!C9" data-fx="=SUMPRODUCT($J$4:$J$7,K4:K7)">-</td>
-              </tr>
-              <tr>
-                <td data-cell="Sheet3!B10">은퇴 후 세후 배당수익률</td>
-                <td class="cell-calc" id="s3-avg-net-y" data-cell="Sheet3!C10" data-fx="=C9*(1-대시보드!$C$10)">-</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div>
-          <table class="xl-table">
-            <thead>
-              <tr>
-                <th>종목 (H)</th>
-                <th>은퇴 시점 평가액 (I)</th>
-                <th>자산 비중 (J)</th>
-                <th>은퇴 시점 배당률 (K)</th>
-                <th>은퇴 후 주가성장률 (L)</th>
-              </tr>
-            </thead>
-            <tbody id="s3-etf-tbody"></tbody>
-            <tfoot>
-              <tr>
-                <td class="cell-sub center">합계 / 가중평균</td>
-                <td class="cell-sub num" id="s3-etf-sum-val">-</td>
-                <td class="cell-sub num" id="s3-etf-sum-w">100.0%</td>
-                <td class="cell-sub num" id="s3-etf-avg-y">-</td>
-                <td class="cell-sub num" id="s3-etf-avg-g">-</td>
-              </tr>
-            </tfoot>
-          </table>
-          <div class="note-text">※ 은퇴 시점에는 각 종목의 성장 속도 차이로 실제 자산 비중(J열)이 초기 투자 비중과 달라지며, 이를 반영해 은퇴 후 가중평균 수익률과 배당률을 산출합니다.</div>
-        </div>
-      </div>
-
-      <div class="grid-scroll" style="max-height: calc(100vh - 380px);">
+      <div class="grid-scroll" style="max-height: calc(100vh - 185px);">
         <table class="sim-table" id="s3-table">
           <thead>
             <tr>
-              <th class="sticky-col-1">은퇴 후<br/>연차 (A)</th>
-              <th>투자<br/>연차 (B)</th>
-              <th>나이<br/>(연말, C)</th>
-              <th>기초 자산 (D)</th>
-              <th>기초 취득원가 (E)</th>
-              <th>미실현 이익<br/>비율 (F)</th>
-              <th>연간 생활비<br/>(물가 반영, G)</th>
-              <th>매도액 가정<br/>(세금 무, H)</th>
-              <th>실제 매도액<br/>(세전, I)</th>
-              <th>양도소득세 (J)</th>
-              <th>매도 후 자산 (K)</th>
-              <th>세후 배당금 (L)</th>
-              <th>생활비 충당액 (M)</th>
-              <th>남은 배당<br/>재투자 (N)</th>
-              <th>운용 수익<br/>(주가 상승, O)</th>
-              <th>기말 자산 (P)</th>
-              <th>기말 취득원가 (Q)</th>
-              <th>부족액<br/>(미충당, R)</th>
-              <th>상태 (S)</th>
-              <th>기말 자산<br/>(현재 가치, T)</th>
+              <th rowspan="2" class="sticky-col-1">은퇴후<br/>연차</th>
+              <th rowspan="2">투자<br/>연차</th>
+              <th rowspan="2">나이<br/>(연말)</th>
+              <th rowspan="2">연간 필요 생활비<br/>(물가 반영, 세후)</th>
+              <th colspan="6" style="background:#0f5f5c;">🏦 개인연금 계좌 (3.3~5.5% 저율과세 & 납입원금 비과세)</th>
+              <th colspan="6" style="background:#1e3a8a;">📊 일반 위탁계좌 (배당 15.4% & 양도세 22%, 250만 공제)</th>
+              <th colspan="5" style="background:#4a3b7c;">합산 결과 및 100% 위탁 단독 비교</th>
+            </tr>
+            <tr>
+              <th style="background:#0f5f5c;">기초 잔액</th>
+              <th style="background:#0f5f5c;">남은 비과세원금</th>
+              <th style="background:#0f5f5c;">적용 연금세율</th>
+              <th style="background:#0f5f5c;">연금 인출액(세전)</th>
+              <th style="background:#0f5f5c;">연금소득세</th>
+              <th style="background:#0f5f5c;">기말 연금잔액</th>
+
+              <th style="background:#1e3a8a;">기초 잔액</th>
+              <th style="background:#1e3a8a;">세후 배당금</th>
+              <th style="background:#1e3a8a;">자산 매도액(세전)</th>
+              <th style="background:#1e3a8a;">양도소득세</th>
+              <th style="background:#1e3a8a;">위탁 생활비충당</th>
+              <th style="background:#1e3a8a;">기말 위탁잔액</th>
+
+              <th style="background:#4a3b7c;">당해 총 납부세금</th>
+              <th style="background:#4a3b7c;">기말 합산 총자산</th>
+              <th style="background:#4a3b7c;">100% 위탁단독 잔액</th>
+              <th style="background:#4a3b7c;">연금병행 순자산 이득</th>
+              <th style="background:#4a3b7c;">상태</th>
             </tr>
           </thead>
           <tbody id="s3-tbody"></tbody>
@@ -831,32 +889,39 @@
   <!-- 하단 엑셀 시트 탭 바 -->
   <div class="bottombar">
     <div class="sheet-tabs">
-      <div class="sheet-tab active" onclick="switchSheet(1)" id="tab-1">📊 대시보드_및_설정</div>
-      <div class="sheet-tab" onclick="switchSheet(2)" id="tab-2">📈 연차별_자산성장_시뮬레이션 (50년)</div>
-      <div class="sheet-tab" onclick="switchSheet(3)" id="tab-3">🏖️ 은퇴후_현금흐름_및_고갈시점 (60년)</div>
+      <div class="sheet-tab active" onclick="switchSheet(1)" id="tab-1">📊 대시보드_및_절세설정</div>
+      <div class="sheet-tab" onclick="switchSheet(2)" id="tab-2">📈 연차별_자산성장_시뮬레이션 (연금+위탁 50년)</div>
+      <div class="sheet-tab" onclick="switchSheet(3)" id="tab-3">🏖️ 은퇴후_현금흐름_및_절세추적 (60년)</div>
     </div>
     <div class="status-info">
-      <span id="status-calc">자동 계산 완료</span>
+      <span id="status-calc">2025 개정세법(연금 배당 15% 차감 · 매매차익 과세이연 · 3.3~5.5% 연금세) 자동 계산 완료</span>
       <span>단위: 원(₩)</span>
     </div>
   </div>
 </div>
 
 <script>
-  // ===================== 기본 데이터 및 상태 =====================
+  // ===================== 기본 상태 데이터 =====================
   const DEFAULT_STATE = {
     init: 0,
-    monthlyMan: 200,
-    incRate: 3.0,
-    reinvRate: 100.0,
-    divTax: 15.4,
+    monthlyMan: 200,          // 월 총 투자금 200만원 (= 연 2,400만원)
+    incRate: 3.0,             // 매년 3% 증액
+    reinvRate: 100.0,         // 위탁계좌 배당 재투자율
     age: 35,
     retYear: 25,
-    retSpend: 4000000,
+    retSpend: 4000000,        // 은퇴 후 월 희망 지출 400만원
     infl: 2.5,
     retDisc: 2.5,
-    cgtRate: 22.0,
-    cgtDed: 2500000,
+    // 연금 vs 위탁 세제 설정
+    penCapMan: 1500,          // 개인연금 연간 납입 한도 (기본 1,500만원, 1,200~1,800만원)
+    penDivTax: 15.0,          // 2025 개편: 연금계좌 내 해외ETF 미국 현지 배당 원천징수 15.0%
+    brkDivTax: 15.4,          // 위탁계좌 배당소득세 15.4%
+    penLowTaxCapMan: 1500,    // 연금 저율과세 연간 한도 1,500만원 (초과분 16.5% 분리과세)
+    penBasisRule: "taxfree_basis", // 세액공제 안 받은 납입원금 0% 비과세 우선인출
+    withdrawOrder: "tax_optimal",  // 절세 최적화 인출
+    cgtRate: 22.0,            // 위탁계좌 해외주식 양도세 22%
+    cgtDed: 2500000,          // 양도세 연간 기본공제 250만원
+    penNoQld: "same",         // 연금계좌 QLD 제한 여부
     etfs: [
       { ticker: "QQQ",  cls: "etf-qqq",  w: 30.0, g: 9.0,  y: 0.60, dg: 8.0 },
       { ticker: "VOO",  cls: "etf-voo",  w: 30.0, g: 7.5,  y: 1.30, dg: 6.0 },
@@ -866,14 +931,18 @@
   };
 
   let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  let simResult = null;
+  let simDual = null;   // 연금 + 위탁 병행 시뮬레이션 결과
+  let simBrkOnly = null; // 100% 위탁계좌 단독 비교 시뮬레이션 결과
   let activeSheet = 1;
 
-  // 숫자 포맷터
   const fmtWon = (v) => {
     if (!isFinite(v)) return "0";
+    return Math.round(v).toLocaleString("ko-KR");
+  };
+  const fmtSignedWon = (v) => {
+    if (!isFinite(v)) return "0";
     const r = Math.round(v);
-    return r.toLocaleString("ko-KR");
+    return (r > 0 ? "+" : "") + r.toLocaleString("ko-KR");
   };
   const fmtPct1 = (v) => (v * 100).toFixed(1) + "%";
   const fmtPct2 = (v) => (v * 100).toFixed(2) + "%";
@@ -884,35 +953,41 @@
     return Math.round(v).toLocaleString("ko-KR");
   };
 
-  // ===================== ETF 설정 테이블 초기화 =====================
+  // 연령별 연금소득세율 (만 55~69세 5.5%, 70~79세 4.4%, 80세+ 3.3%)
+  function getPensionTaxRate(age) {
+    if (age >= 80) return 0.033;
+    if (age >= 70) return 0.044;
+    return 0.055;
+  }
+
+  // ===================== 입력 폼 바인딩 =====================
   function buildEtfInputs() {
     const tbody = document.getElementById("etf-tbody");
     tbody.innerHTML = "";
     state.etfs.forEach((etf, idx) => {
-      const rowNum = 6 + idx;
+      const r = 6 + idx;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="${etf.cls} bold center" data-cell="E${rowNum}" data-fx="${etf.ticker}">${etf.ticker}</td>
-        <td class="cell-input" data-cell="F${rowNum}" data-fx="입력값: ${etf.ticker} 투자 비중 (%)">
+        <td class="${etf.cls} bold center" data-cell="H${r}">${etf.ticker}</td>
+        <td class="cell-input" data-cell="I${r}" data-fx="입력값: ${etf.ticker} 투자 비중 (%)">
           <input type="number" step="5" min="0" max="100" value="${etf.w}" data-etf="${idx}" data-field="w" />
           <span class="unit-suffix">%</span>
         </td>
-        <td class="cell-input" data-cell="G${rowNum}" data-fx="입력값: ${etf.ticker} 연평균 주가 성장률 (%)">
+        <td class="cell-input" data-cell="J${r}" data-fx="입력값: ${etf.ticker} 연평균 주가 성장률 (%)">
           <input type="number" step="0.5" value="${etf.g}" data-etf="${idx}" data-field="g" />
           <span class="unit-suffix">%</span>
         </td>
-        <td class="cell-input" data-cell="H${rowNum}" data-fx="입력값: ${etf.ticker} 현재 시가배당률 (%)">
+        <td class="cell-input" data-cell="K${r}" data-fx="입력값: ${etf.ticker} 현재 시가배당률 (%)">
           <input type="number" step="0.1" min="0" value="${etf.y}" data-etf="${idx}" data-field="y" />
           <span class="unit-suffix">%</span>
         </td>
-        <td class="cell-input" data-cell="I${rowNum}" data-fx="입력값: ${etf.ticker} 연평균 배당 성장률 (%)">
+        <td class="cell-input" data-cell="L${r}" data-fx="입력값: ${etf.ticker} 연평균 배당 성장률 (%)">
           <input type="number" step="0.5" value="${etf.dg}" data-etf="${idx}" data-field="dg" />
           <span class="unit-suffix">%</span>
         </td>
       `;
       tbody.appendChild(tr);
     });
-
     tbody.querySelectorAll("input").forEach((inp) => {
       inp.addEventListener("input", () => {
         const i = Number(inp.dataset.etf);
@@ -923,23 +998,25 @@
     });
   }
 
-  // 기본 입력 바인딩
-  function bindBasicInputs() {
-    const map = [
+  function bindInputs() {
+    const numMap = [
       ["in-init", "init"],
       ["in-monthly-man", "monthlyMan"],
       ["in-inc-rate", "incRate"],
       ["in-reinv-rate", "reinvRate"],
-      ["in-div-tax", "divTax"],
       ["in-age", "age"],
       ["in-ret-year", "retYear"],
       ["in-ret-spend", "retSpend"],
       ["in-infl", "infl"],
       ["in-ret-disc", "retDisc"],
+      ["in-pen-cap-man", "penCapMan"],
+      ["in-pen-div-tax", "penDivTax"],
+      ["in-brk-div-tax", "brkDivTax"],
+      ["in-pen-lowtax-cap", "penLowTaxCapMan"],
       ["in-cgt-rate", "cgtRate"],
       ["in-cgt-ded", "cgtDed"]
     ];
-    map.forEach(([id, key]) => {
+    numMap.forEach(([id, key]) => {
       const el = document.getElementById(id);
       el.addEventListener("input", () => {
         let v = parseFloat(el.value);
@@ -950,6 +1027,19 @@
         recalcAll();
       });
     });
+
+    const selMap = [
+      ["in-pen-basis-rule", "penBasisRule"],
+      ["in-withdraw-order", "withdrawOrder"],
+      ["in-pen-no-qld", "penNoQld"]
+    ];
+    selMap.forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      el.addEventListener("change", () => {
+        state[key] = el.value;
+        recalcAll();
+      });
+    });
   }
 
   function syncInputsFromState() {
@@ -957,178 +1047,387 @@
     document.getElementById("in-monthly-man").value = state.monthlyMan;
     document.getElementById("in-inc-rate").value = state.incRate;
     document.getElementById("in-reinv-rate").value = state.reinvRate;
-    document.getElementById("in-div-tax").value = state.divTax;
     document.getElementById("in-age").value = state.age;
     document.getElementById("in-ret-year").value = state.retYear;
     document.getElementById("in-ret-spend").value = state.retSpend;
     document.getElementById("in-infl").value = state.infl;
     document.getElementById("in-ret-disc").value = state.retDisc;
+    document.getElementById("in-pen-cap-man").value = state.penCapMan;
+    document.getElementById("in-pen-div-tax").value = state.penDivTax;
+    document.getElementById("in-brk-div-tax").value = state.brkDivTax;
+    document.getElementById("in-pen-lowtax-cap").value = state.penLowTaxCapMan;
+    document.getElementById("in-pen-basis-rule").value = state.penBasisRule;
+    document.getElementById("in-withdraw-order").value = state.withdrawOrder;
     document.getElementById("in-cgt-rate").value = state.cgtRate;
     document.getElementById("in-cgt-ded").value = state.cgtDed;
+    document.getElementById("in-pen-no-qld").value = state.penNoQld;
     buildEtfInputs();
   }
 
-  // ===================== 엑셀과 100% 동일한 재무 수식 엔진 =====================
-  function runModel() {
+  function setPenCap(manVal) {
+    state.penCapMan = manVal;
+    document.getElementById("in-pen-cap-man").value = manVal;
+    recalcAll();
+  }
+
+  // ===================== 코어 시뮬레이션 엔진 (연금 + 위탁 이원화) =====================
+  function runDualModel(overridePenCapMan = null) {
     const init = state.init;
     const monthlyWon = state.monthlyMan * 10000;
     const inc = state.incRate / 100;
-    const reinv = state.reinvRate / 100;
-    const tax = state.divTax / 100;
+    const brkReinv = state.reinvRate / 100;
     const age0 = state.age;
     const N = Math.min(50, Math.max(1, Math.round(state.retYear)));
     const spend0 = state.retSpend;
     const infl = state.infl / 100;
     const disc = state.retDisc / 100;
+
+    const penCapYr = (overridePenCapMan !== null ? overridePenCapMan : state.penCapMan) * 10000;
+    const penDivTax = state.penDivTax / 100;
+    const brkDivTax = state.brkDivTax / 100;
+    const lowTaxCap = state.penLowTaxCapMan * 10000;
+    const taxFreeBasisRule = state.penBasisRule === "taxfree_basis";
+    const withdrawOrder = state.withdrawOrder;
     const cgt = state.cgtRate / 100;
     const ded = state.cgtDed;
 
-    const w = state.etfs.map((e) => e.w / 100);
+    const wBrk = state.etfs.map((e) => e.w / 100);
+    const wSum = wBrk.reduce((a, b) => a + b, 0);
+    // 연금계좌 비중 (QLD 제한 옵션 처리)
+    let wPen = [...wBrk];
+    if (state.penNoQld === "no_qld" && wPen[3] > 0) {
+      const nonQldSum = wPen[0] + wPen[1] + wPen[2];
+      if (nonQldSum > 0) {
+        wPen = [
+          wPen[0] / nonQldSum * wSum,
+          wPen[1] / nonQldSum * wSum,
+          wPen[2] / nonQldSum * wSum,
+          0
+        ];
+      } else {
+        wPen = [wSum, 0, 0, 0];
+      }
+    }
+
     const g = state.etfs.map((e) => e.g / 100);
     const y = state.etfs.map((e) => e.y / 100);
     const dg = state.etfs.map((e) => e.dg / 100);
 
-    const wSum = w.reduce((a, b) => a + b, 0);
-    const gAvg = w.reduce((s, wi, i) => s + wi * g[i], 0);
-    const yAvg = w.reduce((s, wi, i) => s + wi * y[i], 0);
-    const dgAvg = w.reduce((s, wi, i) => s + wi * dg[i], 0);
+    const gAvg = wBrk.reduce((s, wi, i) => s + wi * g[i], 0);
+    const yAvg = wBrk.reduce((s, wi, i) => s + wi * y[i], 0);
+    const dgAvg = wBrk.reduce((s, wi, i) => s + wi * dg[i], 0);
 
-    // Sheet 2: 1~50년 적립 시뮬레이션
+    // ---------------- Sheet 2: 1~50년 적립 시뮬레이션 ----------------
     const s2Rows = [];
-    let prevEnd = w.map((wi) => init * wi);
-    let cumPrincipal = init;
-    let cumReinv = 0;
-    let cumCashDiv = 0;
+    let prevPenEnd = [0, 0, 0, 0];
+    let prevBrkEnd = wBrk.map((wi) => init * wi); // 초기 거치금은 위탁계좌로 투입
+
+    let cumPenPrincipal = 0;
+    let cumBrkPrincipal = init;
+    let cumBrkReinv = 0;
+    let cumBrkCashDiv = 0;
 
     for (let t = 1; t <= 50; t++) {
       const age = age0 + t;
-      const mPay = monthlyWon * Math.pow(1 + inc, t - 1);
-      const yrPay = mPay * 12;
-      cumPrincipal += yrPay;
+      const totMonthPay = monthlyWon * Math.pow(1 + inc, t - 1);
+      const totYrPay = totMonthPay * 12;
 
-      const etfCells = [];
-      let totBase = 0, totNew = 0, totGain = 0, totDiv = 0, totReinv = 0, totCash = 0, totEnd = 0;
+      // 연간 총 투자금 중 연금계좌 한도(penCapYr)를 먼저 채우고 나머지를 위탁계좌에 납입
+      const penYrPay = Math.min(totYrPay, penCapYr);
+      const brkYrPay = Math.max(0, totYrPay - penYrPay);
+      const penMonthPay = penYrPay / 12;
+      const brkMonthPay = brkYrPay / 12;
+
+      cumPenPrincipal += penYrPay;
+      cumBrkPrincipal += brkYrPay;
+      const cumTotPrincipal = cumPenPrincipal + cumBrkPrincipal;
+
+      let penBase = 0, penGain = 0, penNetDiv = 0, penEnd = 0;
+      let brkBase = 0, brkGain = 0, brkNetDiv = 0, brkReinvAmt = 0, brkCashDiv = 0, brkEnd = 0;
+      const etfDetails = [];
 
       for (let i = 0; i < 4; i++) {
-        const base = t === 1 ? init * w[i] : prevEnd[i];
-        const newPay = yrPay * w[i];
         const yt = y[i] * Math.pow((1 + dg[i]) / (1 + g[i]), t - 1);
         const rm = Math.pow(1 + g[i], 1 / 12) - 1;
-        const mPayEtf = mPay * w[i];
-        const fvContrib = Math.abs(rm) < 1e-12
-          ? newPay
-          : mPayEtf * ((Math.pow(1 + rm, 12) - 1) / rm) * (1 + rm);
-        const gain = base * g[i] + (fvContrib - newPay);
-        const netDiv = (base * yt + newPay * yt * (13 / 24)) * (1 - tax);
-        const reinvAmt = netDiv * reinv;
-        const cashDiv = netDiv - reinvAmt;
-        const endAsset = base + newPay + gain + reinvAmt;
+        const fvFactor = Math.abs(rm) < 1e-12 ? 12 : ((Math.pow(1 + rm, 12) - 1) / rm) * (1 + rm);
 
-        prevEnd[i] = endAsset;
-        etfCells.push({ base, newPay, yt, gain, netDiv, reinvAmt, cashDiv, endAsset });
+        // 1) 개인연금 계좌 종목 i
+        const pB = prevPenEnd[i];
+        const pNew = penYrPay * wPen[i];
+        const pGain = pB * g[i] + (penMonthPay * wPen[i] * fvFactor - pNew);
+        const pDiv = (pB * yt + pNew * yt * (13 / 24)) * (1 - penDivTax); // 2025 개편: 15.0% 차감 후 100% 연금 내 재투자
+        const pEnd = pB + pNew + pGain + pDiv;
+        prevPenEnd[i] = pEnd;
 
-        totBase += base;
-        totNew += newPay;
-        totGain += gain;
-        totDiv += netDiv;
-        totReinv += reinvAmt;
-        totCash += cashDiv;
-        totEnd += endAsset;
+        penBase += pB;
+        penGain += pGain;
+        penNetDiv += pDiv;
+        penEnd += pEnd;
+
+        // 2) 일반 위탁계좌 종목 i
+        const bB = t === 1 ? init * wBrk[i] : prevBrkEnd[i];
+        const bNew = brkYrPay * wBrk[i];
+        const bGain = bB * g[i] + (brkMonthPay * wBrk[i] * fvFactor - bNew);
+        const bDiv = (bB * yt + bNew * yt * (13 / 24)) * (1 - brkDivTax); // 15.4% 차감
+        const bReinv = bDiv * brkReinv;
+        const bCash = bDiv - bReinv;
+        const bEnd = bB + bNew + bGain + bReinv;
+        prevBrkEnd[i] = bEnd;
+
+        brkBase += bB;
+        brkGain += bGain;
+        brkNetDiv += bDiv;
+        brkReinvAmt += bReinv;
+        brkCashDiv += bCash;
+        brkEnd += bEnd;
+
+        etfDetails.push({
+          yt,
+          totBase: pB + bB,
+          totNew: pNew + bNew,
+          totGain: pGain + bGain,
+          totDiv: pDiv + bDiv,
+          totEnd: pEnd + bEnd
+        });
       }
 
-      cumReinv += totReinv;
-      cumCashDiv += totCash;
-      const monthlyDiv = totDiv / 12;
-      const totalReturn = cumPrincipal > 0 ? (totEnd + cumCashDiv) / cumPrincipal - 1 : 0;
+      cumBrkReinv += brkReinvAmt;
+      cumBrkCashDiv += brkCashDiv;
+
+      const totEnd = penEnd + brkEnd;
+      const totNetDiv = penNetDiv + brkNetDiv;
+      const monthlyDiv = totNetDiv / 12;
+      const totalReturn = cumTotPrincipal > 0 ? (totEnd + cumBrkCashDiv) / cumTotPrincipal - 1 : 0;
 
       s2Rows.push({
-        t, age, mPay, yrPay, cumPrincipal,
-        etfCells,
-        totBase, totNew, totGain, totDiv, totReinv, totCash,
-        cumReinv, cumCashDiv, totEnd, monthlyDiv, totalReturn
+        t, age, totMonthPay, totYrPay,
+        penYrPay, brkYrPay,
+        cumPenPrincipal, cumBrkPrincipal, cumTotPrincipal,
+        penBase, penGain, penNetDiv, penEnd,
+        brkBase, brkGain, brkNetDiv, brkReinvAmt, brkCashDiv, brkEnd,
+        cumBrkReinv, cumBrkCashDiv,
+        totEnd, totNetDiv, monthlyDiv, totalReturn,
+        etfDetails,
+        penEtfEnds: [...prevPenEnd],
+        brkEtfEnds: [...prevBrkEnd]
       });
     }
 
-    // Sheet 3: 은퇴 시점(N년 차 말)에서 시작해 60년 인출 추적
+    // ---------------- Sheet 3: 은퇴 후 60년 인출 및 세금 추적 ----------------
     const retRow = s2Rows[N - 1];
-    const startAsset = retRow.totEnd;
-    const startBasis = retRow.cumPrincipal + retRow.cumReinv;
+    const startPenAsset = retRow.penEnd;
+    const startPenFreeBasis = taxFreeBasisRule ? retRow.cumPenPrincipal : 0; // 세액공제 미적용 원금 비과세 재원
+    const startBrkAsset = retRow.brkEnd;
+    const startBrkBasis = retRow.cumBrkPrincipal + retRow.cumBrkReinv;
 
-    const etfAtRet = state.etfs.map((e, i) => {
-      const val = retRow.etfCells[i].endAsset;
-      const weight = startAsset > 0 ? val / startAsset : 0;
-      const divY = y[i] * Math.pow((1 + dg[i]) / (1 + g[i]), N);
-      const retG = g[i] - disc;
-      return { ticker: e.ticker, cls: e.cls, val, weight, divY, retG };
-    });
+    // 은퇴 시점 각 계좌의 가중평균 배당률 및 주가성장률(할인 반영) 산출
+    function calcAccountRates(etfEnds, fallbackW) {
+      const sumA = etfEnds.reduce((a, b) => a + b, 0);
+      const weights = sumA > 0 ? etfEnds.map((v) => v / sumA) : fallbackW;
+      let avgY = 0, avgG = 0;
+      for (let i = 0; i < 4; i++) {
+        const divY = y[i] * Math.pow((1 + dg[i]) / (1 + g[i]), N);
+        const retG = g[i] - disc;
+        avgY += weights[i] * divY;
+        avgG += weights[i] * retG;
+      }
+      return { avgY, avgG };
+    }
 
-    const retAvgY = etfAtRet.reduce((s, r) => s + r.weight * r.divY, 0);
-    const retAvgG = etfAtRet.reduce((s, r) => s + r.weight * r.retG, 0);
-    const q = retAvgY * (1 - tax); // 세후 배당수익률
+    const penRates = calcAccountRates(retRow.penEtfEnds, wPen);
+    const brkRates = calcAccountRates(retRow.brkEtfEnds, wBrk);
+
+    const qPen = penRates.avgY * (1 - penDivTax); // 연금계좌 내 세후 배당수익률 (15% 차감 후 계좌 내 유입)
+    const gPen = penRates.avgG;
+    const qBrk = brkRates.avgY * (1 - brkDivTax); // 위탁계좌 세후 배당수익률 (15.4% 차감)
+    const gBrk = brkRates.avgG;
+
+    let penA = startPenAsset;
+    let penFreeB = Math.min(startPenAsset, startPenFreeBasis);
+    let brkA = startBrkAsset;
+    let brkB = startBrkBasis;
 
     const s3Rows = [];
-    let A = startAsset;
-    let B = startBasis;
     let firstDeplete = null;
+    let totalTaxPaid60Yr = 0;
+
+    // 보조 함수: 연금계좌에서 원하는 세후 현금(targetNet)을 인출할 때 필요한 세전 인출액과 연금소득세 계산
+    function withdrawFromPension(availPen, availFreeBasis, targetNet, penTaxRate, maxTaxableGross = Infinity) {
+      if (availPen <= 0 || targetNet <= 0) {
+        return { gross: 0, tax: 0, net: 0, usedFree: 0 };
+      }
+      // 1단계: 비과세 납입원금(세금 0%) 먼저 인출
+      const freeGross = Math.min(availPen, availFreeBasis, targetNet);
+      let remNet = targetNet - freeGross;
+      let remPen = availPen - freeGross;
+
+      if (remNet <= 1e-6 || remPen <= 1e-6 || maxTaxableGross <= 1e-6) {
+        return { gross: freeGross, tax: 0, net: freeGross, usedFree: freeGross };
+      }
+
+      // 2단계: 과세대상 운용수익 인출 (저율 한도 lowTaxCap 내에서는 penTaxRate, 초과분은 16.5% 분리과세)
+      const cap1 = Math.min(remPen, lowTaxCap, maxTaxableGross);
+      const maxNet1 = cap1 * (1 - penTaxRate);
+
+      let taxableGross = 0;
+      let tax = 0;
+
+      if (remNet <= maxNet1 + 1e-6) {
+        taxableGross = remNet / (1 - penTaxRate);
+        tax = taxableGross * penTaxRate;
+      } else {
+        // 저율 한도를 다 채우고도 부족한 경우 -> 한도 초과분은 16.5% 분리과세 적용
+        const gross1 = cap1;
+        const tax1 = gross1 * penTaxRate;
+        const remNet2 = remNet - (gross1 - tax1);
+        const remAllow = Math.max(0, Math.min(remPen - gross1, maxTaxableGross - gross1));
+        const highRate = 0.165;
+        const gross2Needed = remNet2 / (1 - highRate);
+        const gross2 = Math.min(remAllow, gross2Needed);
+        const tax2 = gross2 * highRate;
+        taxableGross = gross1 + gross2;
+        tax = tax1 + tax2;
+      }
+
+      const totalGross = freeGross + taxableGross;
+      const totalNet = totalGross - tax;
+      return { gross: totalGross, tax, net: totalNet, usedFree: freeGross };
+    }
+
+    // 보조 함수: 위탁계좌에서 원하는 세후 현금(targetNet)을 충당 (배당 우선 + 부족분 양도세 22% 반영 매도)
+    function withdrawFromBrokerage(availBrk, availBasis, targetNet) {
+      if (availBrk <= 0) {
+        return { sale: 0, cgTax: 0, netDiv: 0, divTaxPaid: 0, covered: 0, surplusReinv: 0, afterSale: 0 };
+      }
+      const gainRatio = Math.max(0, 1 - availBasis / availBrk);
+      let actualSale = 0;
+      if (targetNet > availBrk * qBrk) {
+        const sNoTax = (targetNet - availBrk * qBrk) / (1 - qBrk);
+        let rawS;
+        if (sNoTax * gainRatio <= ded) {
+          rawS = sNoTax;
+        } else {
+          rawS = (targetNet - availBrk * qBrk - cgt * ded) / (1 - cgt * gainRatio - qBrk);
+        }
+        actualSale = Math.min(availBrk, Math.max(0, rawS));
+      }
+      const cgTax = Math.max(0, actualSale * gainRatio - ded) * cgt;
+      const afterSale = availBrk - actualSale;
+      const grossDiv = afterSale * brkRates.avgY;
+      const netDiv = afterSale * qBrk;
+      const divTaxPaid = grossDiv - netDiv;
+      const totalCash = actualSale - cgTax + netDiv;
+      const covered = Math.min(targetNet, totalCash);
+      const surplusReinv = Math.max(0, totalCash - targetNet);
+      return { sale: actualSale, cgTax, netDiv, divTaxPaid, covered, surplusReinv, afterSale };
+    }
 
     for (let k = 1; k <= 60; k++) {
       const invYr = N + k;
       const age = age0 + invYr;
-      const baseAsset = k === 1 ? startAsset : Math.max(0, A);
-      const baseBasis = k === 1 ? startBasis : B;
-      const gainRatio = baseAsset > 0 ? Math.max(0, 1 - baseBasis / baseAsset) : 0;
       const yrSpend = spend0 * 12 * Math.pow(1 + infl, invYr - 1);
-      const saleNoTax = (yrSpend - baseAsset * q) / (1 - q);
+      const penTaxRate = getPensionTaxRate(age);
 
-      let actualSale = 0;
-      if (baseAsset > 0) {
-        let rawSale;
-        if (saleNoTax * gainRatio <= ded) {
-          rawSale = saleNoTax;
+      const basePen = Math.max(0, penA);
+      const baseFree = Math.max(0, Math.min(basePen, penFreeB));
+      const baseBrk = Math.max(0, brkA);
+      const baseBrkB = Math.max(0, brkB);
+
+      let penRes = { gross: 0, tax: 0, net: 0, usedFree: 0 };
+      let brkRes = { sale: 0, cgTax: 0, netDiv: 0, divTaxPaid: 0, covered: 0, surplusReinv: 0, afterSale: baseBrk };
+
+      if (withdrawOrder === "tax_optimal") {
+        // ① 연금계좌에서 비과세 원금 + 연 1,500만 원 저율과세 한도까지만 1차 인출
+        const step1 = withdrawFromPension(basePen, baseFree, yrSpend, penTaxRate, lowTaxCap);
+        const remAfterStep1 = Math.max(0, yrSpend - step1.net);
+        // ② 부족분을 위탁계좌에서 인출
+        brkRes = withdrawFromBrokerage(baseBrk, baseBrkB, remAfterStep1);
+        const remAfterStep2 = Math.max(0, remAfterStep1 - brkRes.covered);
+        // ③ 위탁계좌까지 다 쓰고도 부족하면 연금계좌 남은 금액에서 추가 인출
+        if (remAfterStep2 > 1 && basePen - step1.gross > 1) {
+          const step3 = withdrawFromPension(
+            basePen - step1.gross,
+            baseFree - step1.usedFree,
+            remAfterStep2,
+            penTaxRate,
+            Infinity
+          );
+          penRes = {
+            gross: step1.gross + step3.gross,
+            tax: step1.tax + step3.tax,
+            net: step1.net + step3.net,
+            usedFree: step1.usedFree + step3.usedFree
+          };
         } else {
-          rawSale = (yrSpend - baseAsset * q - cgt * ded) / (1 - cgt * gainRatio - q);
+          penRes = step1;
         }
-        actualSale = Math.min(baseAsset, Math.max(0, rawSale));
+      } else if (withdrawOrder === "broker_first") {
+        // 위탁계좌 먼저 전액 소진 -> 부족분 연금계좌 인출
+        brkRes = withdrawFromBrokerage(baseBrk, baseBrkB, yrSpend);
+        const rem = Math.max(0, yrSpend - brkRes.covered);
+        penRes = withdrawFromPension(basePen, baseFree, rem, penTaxRate, Infinity);
+      } else {
+        // 연금계좌 전액 먼저 소진 -> 부족분 위탁계좌 인출
+        penRes = withdrawFromPension(basePen, baseFree, yrSpend, penTaxRate, Infinity);
+        const rem = Math.max(0, yrSpend - penRes.net);
+        brkRes = withdrawFromBrokerage(baseBrk, baseBrkB, rem);
       }
 
-      const cgTax = Math.max(0, actualSale * gainRatio - ded) * cgt;
-      const afterSaleAsset = baseAsset - actualSale;
-      const netDiv = afterSaleAsset * q;
-      const covered = Math.min(yrSpend, actualSale - cgTax + netDiv);
-      const surplusReinv = Math.max(0, actualSale - cgTax + netDiv - yrSpend);
-      const capGain = afterSaleAsset * retAvgG;
-      const endAsset = afterSaleAsset + capGain + surplusReinv;
-      const endBasis = (baseAsset > 0 ? baseBasis * (1 - actualSale / baseAsset) : 0) + surplusReinv;
-      const shortfall = Math.max(0, yrSpend - covered);
-      const status = shortfall > 1 ? "고갈" : "정상";
-      const realEndAsset = endAsset / Math.pow(1 + infl, invYr);
+      // 연금계좌 기말 잔액 계산 (인출 후 남은 금액에서 배당 재투자 + 주가 상승)
+      const afterPen = Math.max(0, basePen - penRes.gross);
+      const penGrossDiv = afterPen * penRates.avgY;
+      const penNetDiv = afterPen * qPen;
+      const penDivTaxPaid = penGrossDiv - penNetDiv;
+      const penCapGain = afterPen * gPen;
+      const endPen = afterPen + penNetDiv + penCapGain;
+      const endFree = Math.max(0, baseFree - penRes.usedFree);
+
+      // 위탁계좌 기말 잔액 계산
+      const brkCapGain = brkRes.afterSale * gBrk;
+      const endBrk = brkRes.afterSale + brkCapGain + brkRes.surplusReinv;
+      const endBrkB = (baseBrk > 0 ? baseBrkB * (1 - brkRes.sale / baseBrk) : 0) + brkRes.surplusReinv;
+
+      const totCovered = penRes.net + brkRes.covered;
+      const shortfall = Math.max(0, yrSpend - totCovered);
+      const status = shortfall > 10 ? "고갈" : "정상";
+      const endTot = endPen + endBrk;
+
+      // 당해 연도 총 납부 세금 (연금소득세 + 연금내 배당원천징수세 + 위탁 양도소득세 + 위탁 배당소득세)
+      const yrTotalTax = penRes.tax + penDivTaxPaid + brkRes.cgTax + brkRes.divTaxPaid;
+      totalTaxPaid60Yr += yrTotalTax;
 
       if (status === "고갈" && !firstDeplete) {
         firstDeplete = { k, age };
       }
 
       s3Rows.push({
-        k, invYr, age, baseAsset, baseBasis, gainRatio, yrSpend,
-        saleNoTax, actualSale, cgTax, afterSaleAsset, netDiv,
-        covered, surplusReinv, capGain, endAsset, endBasis,
-        shortfall, status, realEndAsset
+        k, invYr, age, yrSpend,
+        basePen, baseFree, penTaxRate,
+        penGross: penRes.gross, penTax: penRes.tax, endPen,
+        baseBrk, brkNetDiv: brkRes.netDiv, brkSale: brkRes.sale,
+        brkCgTax: brkRes.cgTax, brkCovered: brkRes.covered, endBrk,
+        yrTotalTax, endTot, shortfall, status
       });
 
-      A = endAsset;
-      B = endBasis;
+      penA = endPen;
+      penFreeB = endFree;
+      brkA = endBrk;
+      brkB = endBrkB;
     }
 
     return {
       monthlyWon, wSum, gAvg, yAvg, dgAvg, N,
       s2Rows, s3Rows,
-      etfAtRet, startAsset, startBasis, retAvgY, retAvgG, q,
-      firstDeplete
+      startPenAsset, startBrkAsset,
+      startTotAsset: startPenAsset + startBrkAsset,
+      firstDeplete, totalTaxPaid60Yr
     };
   }
 
-  // ===================== UI 렌더링 =====================
+  // ===================== 전체 재계산 및 렌더링 =====================
   function recalcAll() {
-    simResult = runModel();
+    simDual = runDualModel(null);      // 사용자 설정 (연금 + 위탁 병행)
+    simBrkOnly = runDualModel(0);      // 비교군: 연금 0원 (100% 위탁계좌 단독 운용)
     renderSheet1();
     renderSheet2();
     renderSheet3();
@@ -1136,57 +1435,70 @@
   }
 
   function renderSheet1() {
-    const R = simResult;
-    const N = R.N;
+    const D = simDual;
+    const B = simBrkOnly;
+    const N = D.N;
     const infl = state.infl / 100;
 
-    document.getElementById("out-monthly-won").textContent = fmtWon(R.monthlyWon) + "원";
+    const yr1Tot = D.monthlyWon * 12;
+    const yr1Pen = Math.min(yr1Tot, state.penCapMan * 10000);
+    const yr1Brk = Math.max(0, yr1Tot - yr1Pen);
+
+    document.getElementById("out-yr1-total").textContent = fmtWon(yr1Tot) + "원";
+    document.getElementById("out-yr1-split").textContent =
+      `연금 ${Math.round(yr1Pen / 120000).toLocaleString()}만 / 위탁 ${Math.round(yr1Brk / 120000).toLocaleString()}만`;
     document.getElementById("out-ret-age").textContent = (state.age + N) + "세";
     const firstMonthSpend = state.retSpend * Math.pow(1 + infl, N);
     document.getElementById("out-ret-first-month").textContent = fmtWon(firstMonthSpend) + "원";
 
-    document.getElementById("out-w-sum").textContent = fmtPct1(R.wSum);
-    document.getElementById("out-g-avg").textContent = fmtPct2(R.gAvg);
-    document.getElementById("out-y-avg").textContent = fmtPct2(R.yAvg);
-    document.getElementById("out-dg-avg").textContent = fmtPct2(R.dgAvg);
+    document.getElementById("out-w-sum").textContent = fmtPct1(D.wSum);
+    document.getElementById("out-g-avg").textContent = fmtPct2(D.gAvg);
+    document.getElementById("out-y-avg").textContent = fmtPct2(D.yAvg);
+    document.getElementById("out-dg-avg").textContent = fmtPct2(D.dgAvg);
 
     const wCheck = document.getElementById("out-w-check");
-    if (Math.abs(R.wSum - 1) < 1e-4) {
+    if (Math.abs(D.wSum - 1) < 1e-4) {
       wCheck.textContent = "✅ 합계 100% 정상";
       wCheck.className = "badge-ok";
     } else {
-      wCheck.textContent = `⚠️ 합계 ${fmtPct1(R.wSum)} → 100%로 맞춰 주세요`;
+      wCheck.textContent = `⚠️ 합계 ${fmtPct1(D.wSum)} → 100%로 맞춰 주세요`;
       wCheck.className = "badge-err";
     }
 
-    const retRow = R.s2Rows[N - 1];
-    const retNominal = retRow.totEnd;
-    const retReal = retNominal / Math.pow(1 + infl, N);
-    const firstS3 = R.s3Rows[0];
-    const divCover = firstS3.yrSpend > 0 ? firstS3.netDiv / firstS3.yrSpend : 0;
+    // ④ 절세 효과 비교 보드
+    document.getElementById("cmp-ret-dual").textContent = fmtWon(D.startTotAsset) + "원";
+    document.getElementById("cmp-ret-brk").textContent = fmtWon(B.startTotAsset) + "원";
+    const penPct = D.startTotAsset > 0 ? (D.startPenAsset / D.startTotAsset) * 100 : 0;
+    document.getElementById("cmp-ret-split").textContent =
+      `연금 ${fmtShortWon(D.startPenAsset)} (${penPct.toFixed(0)}%) + 위탁 ${fmtShortWon(D.startBrkAsset)} (${(100 - penPct).toFixed(0)}%)`;
 
-    document.getElementById("key-ret-nominal").textContent = fmtWon(retNominal) + "원";
-    document.getElementById("key-ret-real").textContent = fmtWon(retReal) + "원";
-    document.getElementById("key-ret-div").textContent = fmtWon(retRow.totDiv) + "원";
-    document.getElementById("key-ret-spend-yr").textContent = fmtWon(firstMonthSpend * 12) + "원";
-    document.getElementById("key-div-cover").textContent = fmtPct1(divCover);
+    document.getElementById("cmp-tax-dual").textContent = fmtWon(D.totalTaxPaid60Yr) + "원";
+    document.getElementById("cmp-tax-brk").textContent = fmtWon(B.totalTaxPaid60Yr) + "원";
+    const taxSaved = B.totalTaxPaid60Yr - D.totalTaxPaid60Yr;
+    document.getElementById("cmp-tax-saved").textContent =
+      taxSaved >= 0
+        ? `🎉 총 ${fmtWon(taxSaved)}원 세금 절감 (약 ${fmtShortWon(taxSaved)} 절세!)`
+        : `${fmtSignedWon(taxSaved)}원`;
 
-    const depText = R.firstDeplete
-      ? `은퇴 후 ${R.firstDeplete.k}년 차 (만 ${R.firstDeplete.age}세)에 자산 고갈`
-      : "영구 지속 (자본 잠식 없음)";
-    const lastEnd = R.s3Rows[R.s3Rows.length - 1].endAsset;
-    const eroText = R.firstDeplete
-      ? "⚠️ 생활비 인출로 자산 고갈 발생"
-      : (lastEnd >= R.startAsset
-          ? "✅ 60년 뒤에도 명목 자산이 은퇴 시점 이상 (원금 보존)"
-          : "ℹ️ 60년 내 고갈은 없지만 자산은 줄어드는 추세");
+    const y40Idx = Math.min(59, Math.max(0, 40 - N - 1));
+    const y40Dual = 40 <= N ? D.s2Rows[39].totEnd : D.s3Rows[y40Idx].endTot;
+    const y40Brk = 40 <= N ? B.s2Rows[39].totEnd : B.s3Rows[y40Idx].endTot;
+    document.getElementById("cmp-y40-dual").textContent = fmtWon(y40Dual) + "원";
+    document.getElementById("cmp-y40-brk").textContent = fmtWon(y40Brk) + "원";
 
-    const depEl = document.getElementById("key-depletion");
-    depEl.textContent = depText;
-    depEl.style.color = R.firstDeplete ? "#c00000" : "#006100";
-    document.getElementById("key-erosion").textContent = eroText;
+    const depDualEl = document.getElementById("cmp-dep-dual");
+    depDualEl.textContent = D.firstDeplete
+      ? `은퇴후 ${D.firstDeplete.k}년차(만 ${D.firstDeplete.age}세) 고갈`
+      : "영구 지속 (고갈 없음)";
+    depDualEl.style.color = D.firstDeplete ? "#c00000" : "#006100";
 
-    // 마일스톤 요약표
+    const depBrkEl = document.getElementById("cmp-dep-brk");
+    depBrkEl.textContent = B.firstDeplete
+      ? `은퇴후 ${B.firstDeplete.k}년차(만 ${B.firstDeplete.age}세) 고갈`
+      : "영구 지속 (고갈 없음)";
+    depBrkEl.style.color = B.firstDeplete ? "#c00000" : "#006100";
+
+    // ⑤ 마일스톤 요약표
     const groups = [
       { name: "단기", bg: "#e2efda", yrs: [1, 3, 5] },
       { name: "중기", bg: "#ddebf7", yrs: [10, 15, 20] },
@@ -1194,183 +1506,171 @@
     ];
     const mBody = document.getElementById("milestone-tbody");
     mBody.innerHTML = "";
-    let excelRow = 34;
     groups.forEach((grp) => {
       grp.yrs.forEach((yr, idx) => {
-        const s2 = R.s2Rows[yr - 1];
+        const s2 = D.s2Rows[yr - 1];
+        const s2Brk = B.s2Rows[yr - 1];
         const isAfterRet = yr > N;
-        const actualBal = isAfterRet ? R.s3Rows[yr - N - 1].endAsset : s2.totEnd;
-        const actualReal = actualBal / Math.pow(1 + infl, yr);
-        const tr = document.createElement("tr");
-        const jStyle = isAfterRet
-          ? `background:#fff2cc;font-weight:700;${actualBal <= 0 ? "color:#c00000;" : ""}`
-          : "font-weight:700;";
 
+        const actualPen = isAfterRet ? D.s3Rows[yr - N - 1].endPen : s2.penEnd;
+        const actualBrk = isAfterRet ? D.s3Rows[yr - N - 1].endBrk : s2.brkEnd;
+        const actualTot = actualPen + actualBrk;
+        const onlyBrkActual = isAfterRet ? B.s3Rows[yr - N - 1].endTot : s2Brk.totEnd;
+        const advantage = actualTot - onlyBrkActual;
+
+        const rowBg = isAfterRet ? "background:#fff2cc;font-weight:700;" : "";
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           ${idx === 0 ? `<td rowspan="3" class="bold center" style="background:${grp.bg}">${grp.name}</td>` : ""}
-          <td class="bold center" data-cell="C${excelRow}">${yr}년 뒤</td>
-          <td class="center" data-cell="D${excelRow}" data-fx="=$C$11+C${excelRow}">${s2.age}세</td>
-          <td class="num" data-cell="E${excelRow}" data-fx="=INDEX(Sheet2!$E$6:$E$55,MATCH($C${excelRow},Sheet2!$A$6:$A$55,0))">${fmtWon(s2.cumPrincipal)}</td>
-          <td class="num bold" data-cell="F${excelRow}" data-fx="=INDEX(Sheet2!$AT$6:$AT$55,MATCH($C${excelRow},Sheet2!$A$6:$A$55,0))">${fmtWon(s2.totEnd)}</td>
-          <td class="num" data-cell="G${excelRow}" data-fx="=INDEX(Sheet2!$AO$6:$AO$55,MATCH($C${excelRow},Sheet2!$A$6:$A$55,0))">${fmtWon(s2.totDiv)}</td>
-          <td class="num" data-cell="H${excelRow}" data-fx="=INDEX(Sheet2!$AU$6:$AU$55,MATCH($C${excelRow},Sheet2!$A$6:$A$55,0))">${fmtWon(s2.monthlyDiv)}</td>
-          <td class="num" data-cell="I${excelRow}" data-fx="=INDEX(Sheet2!$AV$6:$AV$55,MATCH($C${excelRow},Sheet2!$A$6:$A$55,0))">${fmtPct1(s2.totalReturn)}</td>
-          <td class="num" style="${jStyle}" data-cell="J${excelRow}" data-fx="=IF(C${excelRow}<=$C$14,F${excelRow},INDEX(Sheet3!$P$13:$P$72,C${excelRow}-$C$14))">${fmtWon(actualBal)}</td>
-          <td class="num" style="${jStyle}" data-cell="K${excelRow}" data-fx="=J${excelRow}/(1+$C$16)^C${excelRow}">${fmtWon(actualReal)}</td>
+          <td class="bold center">${yr}년 뒤</td>
+          <td class="center">${s2.age}세</td>
+          <td class="num">${fmtWon(s2.cumTotPrincipal)}</td>
+          <td class="num cell-pen">${fmtWon(s2.penEnd)}</td>
+          <td class="num cell-brk">${fmtWon(s2.brkEnd)}</td>
+          <td class="num bold">${fmtWon(s2.totEnd)}</td>
+          <td class="num">${fmtWon(s2.totNetDiv)}</td>
+          <td class="num bold" style="${rowBg}">${fmtWon(actualTot)}</td>
+          <td class="num" style="${rowBg}color:#0d502c;">${fmtWon(actualPen)}</td>
+          <td class="num" style="${rowBg}color:#1e3a8a;">${fmtWon(actualBrk)}</td>
+          <td class="num" style="background:#f9fafb;">${fmtWon(onlyBrkActual)}</td>
+          <td class="num bold" style="color:${advantage >= 0 ? "#006100" : "#c00000"};background:#f0fdf4;">${fmtSignedWon(advantage)}</td>
         `;
         mBody.appendChild(tr);
-        excelRow++;
       });
     });
   }
 
   function renderSheet2() {
-    const R = simResult;
+    const D = simDual;
     const showDetail = document.getElementById("toggle-etf-detail").checked;
     const thead = document.getElementById("s2-thead");
     const tbody = document.getElementById("s2-tbody");
 
     let h1 = `<tr>
-      <th rowspan="2" class="sticky-col-1">연차 (A)</th>
-      <th rowspan="2">나이 (B)</th>
-      <th rowspan="2">월 투자금 (C)</th>
-      <th rowspan="2">연간 신규 납입금 (D)</th>
-      <th rowspan="2">누적 원금 (E)</th>`;
+      <th rowspan="2" class="sticky-col-1">연차</th>
+      <th rowspan="2">나이</th>
+      <th rowspan="2">연간 총납입금</th>
+      <th rowspan="2" style="background:#0f5f5c;">연금계좌 납입</th>
+      <th rowspan="2" style="background:#1e3a8a;">위탁계좌 납입</th>
+      <th rowspan="2">누적 총원금</th>`;
     let h2 = `<tr>`;
 
     if (showDetail) {
       state.etfs.forEach((e) => {
-        h1 += `<th colspan="8" class="${e.cls}">${e.ticker}</th>`;
+        h1 += `<th colspan="5" class="${e.cls}">${e.ticker} (연금+위탁 합산)</th>`;
         h2 += `
-          <th class="${e.cls}">기초 자산</th>
-          <th class="${e.cls}">신규 납입금</th>
-          <th class="${e.cls}">연차별 배당률</th>
-          <th class="${e.cls}">주가 상승분</th>
-          <th class="${e.cls}">세후 배당금</th>
-          <th class="${e.cls}">배당 재투자금</th>
-          <th class="${e.cls}">현금 수령 배당</th>
-          <th class="${e.cls}">기말 자산</th>`;
+          <th class="${e.cls}">기초자산</th>
+          <th class="${e.cls}">신규납입</th>
+          <th class="${e.cls}">배당률</th>
+          <th class="${e.cls}">주가상승분</th>
+          <th class="${e.cls}">기말자산</th>`;
       });
     }
-    h1 += `<th colspan="11">포트폴리오 합계 (AL~AV열)</th></tr>`;
+
+    h1 += `
+      <th colspan="4" style="background:#0f5f5c;">🏦 개인연금 계좌 (배당 15.0% 차감 후 재투자)</th>
+      <th colspan="5" style="background:#1e3a8a;">📊 일반 위탁계좌 (배당 15.4% 차감)</th>
+      <th colspan="4" style="background:#4a3b7c;">합산 포트폴리오</th>
+    </tr>`;
+
     h2 += `
-      <th class="tot-col">총 기초 자산</th>
-      <th class="tot-col">총 신규 납입금</th>
-      <th class="tot-col">총 주가 상승분</th>
-      <th class="tot-col">총 세후 배당금</th>
-      <th class="tot-col">총 배당 재투자</th>
-      <th class="tot-col">총 현금 수령 배당</th>
-      <th class="tot-col">누적 배당 재투자</th>
-      <th class="tot-col">누적 현금 수령 배당</th>
-      <th class="tot-col">기말 총자산 (AT)</th>
-      <th class="tot-col">월평균 배당 현금흐름</th>
+      <th style="background:#0f5f5c;">연금 기초자산</th>
+      <th style="background:#0f5f5c;">연금 주가상승</th>
+      <th style="background:#0f5f5c;">연금 세후배당(재투자)</th>
+      <th style="background:#0f5f5c;">연금 기말자산</th>
+
+      <th style="background:#1e3a8a;">위탁 기초자산</th>
+      <th style="background:#1e3a8a;">위탁 주가상승</th>
+      <th style="background:#1e3a8a;">위탁 세후배당</th>
+      <th style="background:#1e3a8a;">위탁 배당재투자</th>
+      <th style="background:#1e3a8a;">위탁 기말자산</th>
+
+      <th class="tot-col">합산 기말총자산</th>
+      <th class="tot-col">합산 연간배당</th>
+      <th class="tot-col">월평균 배당흐름</th>
       <th class="tot-col">총 수익률</th>
     </tr>`;
+
     thead.innerHTML = h1 + h2;
 
-    const rowsHtml = R.s2Rows.map((row) => {
-      const isRet = row.t === R.N;
+    tbody.innerHTML = D.s2Rows.map((r) => {
+      const isRet = r.t === D.N;
       let etfTds = "";
       if (showDetail) {
-        row.etfCells.forEach((c) => {
+        r.etfDetails.forEach((c) => {
           etfTds += `
-            <td class="num">${fmtWon(c.base)}</td>
-            <td class="num">${fmtWon(c.newPay)}</td>
+            <td class="num">${fmtWon(c.totBase)}</td>
+            <td class="num">${fmtWon(c.totNew)}</td>
             <td class="num">${fmtPct2(c.yt)}</td>
-            <td class="num">${fmtWon(c.gain)}</td>
-            <td class="num">${fmtWon(c.netDiv)}</td>
-            <td class="num">${fmtWon(c.reinvAmt)}</td>
-            <td class="num">${fmtWon(c.cashDiv)}</td>
-            <td class="num bold">${fmtWon(c.endAsset)}</td>`;
+            <td class="num">${fmtWon(c.totGain)}</td>
+            <td class="num bold">${fmtWon(c.totEnd)}</td>`;
         });
       }
       return `<tr class="${isRet ? "retire-highlight" : ""}">
-        <td class="sticky-col-1 center bold">${row.t}</td>
-        <td class="center">${row.age}세</td>
-        <td class="num">${fmtWon(row.mPay)}</td>
-        <td class="num">${fmtWon(row.yrPay)}</td>
-        <td class="num">${fmtWon(row.cumPrincipal)}</td>
+        <td class="sticky-col-1 center bold">${r.t}</td>
+        <td class="center">${r.age}세</td>
+        <td class="num">${fmtWon(r.totYrPay)}</td>
+        <td class="num pen-col">${fmtWon(r.penYrPay)}</td>
+        <td class="num brk-col">${fmtWon(r.brkYrPay)}</td>
+        <td class="num">${fmtWon(r.cumTotPrincipal)}</td>
         ${etfTds}
-        <td class="num">${fmtWon(row.totBase)}</td>
-        <td class="num">${fmtWon(row.totNew)}</td>
-        <td class="num">${fmtWon(row.totGain)}</td>
-        <td class="num">${fmtWon(row.totDiv)}</td>
-        <td class="num">${fmtWon(row.totReinv)}</td>
-        <td class="num">${fmtWon(row.totCash)}</td>
-        <td class="num">${fmtWon(row.cumReinv)}</td>
-        <td class="num">${fmtWon(row.cumCashDiv)}</td>
-        <td class="num tot-col">${fmtWon(row.totEnd)}</td>
-        <td class="num">${fmtWon(row.monthlyDiv)}</td>
-        <td class="num">${fmtPct1(row.totalReturn)}</td>
+        <td class="num">${fmtWon(r.penBase)}</td>
+        <td class="num">${fmtWon(r.penGain)}</td>
+        <td class="num">${fmtWon(r.penNetDiv)}</td>
+        <td class="num pen-col">${fmtWon(r.penEnd)}</td>
+
+        <td class="num">${fmtWon(r.brkBase)}</td>
+        <td class="num">${fmtWon(r.brkGain)}</td>
+        <td class="num">${fmtWon(r.brkNetDiv)}</td>
+        <td class="num">${fmtWon(r.brkReinvAmt)}</td>
+        <td class="num brk-col">${fmtWon(r.brkEnd)}</td>
+
+        <td class="num tot-col">${fmtWon(r.totEnd)}</td>
+        <td class="num">${fmtWon(r.totNetDiv)}</td>
+        <td class="num">${fmtWon(r.monthlyDiv)}</td>
+        <td class="num">${fmtPct1(r.totalReturn)}</td>
       </tr>`;
     }).join("");
-    tbody.innerHTML = rowsHtml;
   }
 
   function renderSheet3() {
-    const R = simResult;
-    const depEl = document.getElementById("s3-depletion");
-    depEl.textContent = R.firstDeplete
-      ? `은퇴 후 ${R.firstDeplete.k}년 차 (만 ${R.firstDeplete.age}세)에 자산 고갈`
-      : "영구 지속 (자본 잠식 없음)";
-    depEl.style.color = R.firstDeplete ? "#c00000" : "#006100";
-
-    const lastEnd = R.s3Rows[R.s3Rows.length - 1].endAsset;
-    document.getElementById("s3-erosion").textContent = R.firstDeplete
-      ? "⚠️ 생활비 인출로 자산 고갈 발생"
-      : (lastEnd >= R.startAsset
-          ? "✅ 60년 뒤에도 명목 자산이 은퇴 시점 이상 (원금 보존)"
-          : "ℹ️ 60년 내 고갈은 없지만 자산은 줄어드는 추세");
-
-    document.getElementById("s3-ret-point").textContent = `투자 ${R.N}년 차 말 (만 ${state.age + R.N}세)`;
-    document.getElementById("s3-start-asset").textContent = fmtWon(R.startAsset) + "원";
-    document.getElementById("s3-start-basis").textContent = fmtWon(R.startBasis) + "원";
-    document.getElementById("s3-avg-g").textContent = fmtPct2(R.retAvgG);
-    document.getElementById("s3-avg-y").textContent = fmtPct2(R.retAvgY);
-    document.getElementById("s3-avg-net-y").textContent = fmtPct2(R.q);
-
-    const etfTbody = document.getElementById("s3-etf-tbody");
-    etfTbody.innerHTML = R.etfAtRet.map((e) => `
-      <tr>
-        <td class="${e.cls} bold center">${e.ticker}</td>
-        <td class="num">${fmtWon(e.val)}</td>
-        <td class="num">${fmtPct1(e.weight)}</td>
-        <td class="num">${fmtPct2(e.divY)}</td>
-        <td class="num">${fmtPct2(e.retG)}</td>
-      </tr>
-    `).join("");
-    document.getElementById("s3-etf-sum-val").textContent = fmtWon(R.startAsset);
-    document.getElementById("s3-etf-avg-y").textContent = fmtPct2(R.retAvgY);
-    document.getElementById("s3-etf-avg-g").textContent = fmtPct2(R.retAvgG);
-
+    const D = simDual;
+    const B = simBrkOnly;
     const tbody = document.getElementById("s3-tbody");
-    tbody.innerHTML = R.s3Rows.map((r) => `
-      <tr class="${r.status === "고갈" ? "depleted-row" : ""}">
+
+    tbody.innerHTML = D.s3Rows.map((r, idx) => {
+      const brkOnlyRow = B.s3Rows[idx];
+      const diff = r.endTot - brkOnlyRow.endTot;
+      return `<tr class="${r.status === "고갈" ? "depleted-row" : ""}">
         <td class="sticky-col-1 center bold">${r.k}</td>
         <td class="center">${r.invYr}</td>
         <td class="center">${r.age}세</td>
-        <td class="num">${fmtWon(r.baseAsset)}</td>
-        <td class="num">${fmtWon(r.baseBasis)}</td>
-        <td class="num">${fmtPct1(r.gainRatio)}</td>
-        <td class="num">${fmtWon(r.yrSpend)}</td>
-        <td class="num">${fmtWon(r.saleNoTax)}</td>
-        <td class="num">${fmtWon(r.actualSale)}</td>
-        <td class="num">${fmtWon(r.cgTax)}</td>
-        <td class="num">${fmtWon(r.afterSaleAsset)}</td>
-        <td class="num">${fmtWon(r.netDiv)}</td>
-        <td class="num">${fmtWon(r.covered)}</td>
-        <td class="num">${fmtWon(r.surplusReinv)}</td>
-        <td class="num">${fmtWon(r.capGain)}</td>
-        <td class="num tot-col">${fmtWon(r.endAsset)}</td>
-        <td class="num">${fmtWon(r.endBasis)}</td>
-        <td class="num">${fmtWon(r.shortfall)}</td>
+        <td class="num bold">${fmtWon(r.yrSpend)}</td>
+
+        <td class="num">${fmtWon(r.basePen)}</td>
+        <td class="num">${fmtWon(r.baseFree)}</td>
+        <td class="center">${fmtPct1(r.penTaxRate)}</td>
+        <td class="num">${fmtWon(r.penGross)}</td>
+        <td class="num">${fmtWon(r.penTax)}</td>
+        <td class="num pen-col">${fmtWon(r.endPen)}</td>
+
+        <td class="num">${fmtWon(r.baseBrk)}</td>
+        <td class="num">${fmtWon(r.brkNetDiv)}</td>
+        <td class="num">${fmtWon(r.brkSale)}</td>
+        <td class="num">${fmtWon(r.brkCgTax)}</td>
+        <td class="num">${fmtWon(r.brkCovered)}</td>
+        <td class="num brk-col">${fmtWon(r.endBrk)}</td>
+
+        <td class="num">${fmtWon(r.yrTotalTax)}</td>
+        <td class="num tot-col">${fmtWon(r.endTot)}</td>
+        <td class="num">${fmtWon(brkOnlyRow.endTot)}</td>
+        <td class="num bold" style="color:${diff >= 0 ? "#006100" : "#c00000"}">${fmtSignedWon(diff)}</td>
         <td class="center bold">${r.status}</td>
-        <td class="num">${fmtWon(r.realEndAsset)}</td>
-      </tr>
-    `).join("");
+      </tr>`;
+    }).join("");
   }
 
-  // ===================== 캔버스 차트 렌더링 =====================
+  // ===================== 차트 그리기 =====================
   function drawLineChart(canvasId, labels, series, retireIdx) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
@@ -1383,7 +1683,7 @@
     ctx.scale(dpr, dpr);
 
     const W = rect.width, H = rect.height;
-    const pad = { l: 58, r: 16, t: 24, b: 28 };
+    const pad = { l: 58, r: 16, t: 26, b: 28 };
     const pw = W - pad.l - pad.r;
     const ph = H - pad.t - pad.b;
 
@@ -1391,7 +1691,6 @@
     let maxVal = 1;
     series.forEach((s) => s.data.forEach((v) => { if (v > maxVal) maxVal = v; }));
 
-    // 가로 눈금선
     ctx.strokeStyle = "#e5e7eb";
     ctx.fillStyle = "#555";
     ctx.font = "11px '맑은 고딕'";
@@ -1406,7 +1705,6 @@
       ctx.fillText(fmtShortWon(v), pad.l - 6, y + 4);
     }
 
-    // 은퇴 연차 수직선
     if (retireIdx != null && retireIdx >= 0 && retireIdx < labels.length) {
       const rx = pad.l + (pw * retireIdx) / (labels.length - 1);
       ctx.save();
@@ -1422,7 +1720,6 @@
       ctx.restore();
     }
 
-    // X축 라벨
     ctx.textAlign = "center";
     ctx.fillStyle = "#555";
     const step = Math.max(1, Math.floor(labels.length / 6));
@@ -1431,10 +1728,11 @@
       ctx.fillText(labels[i], x, H - 8);
     }
 
-    // 선 그리기
     series.forEach((s) => {
+      ctx.save();
       ctx.strokeStyle = s.color;
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = s.width || 2.2;
+      if (s.dashed) ctx.setLineDash([5, 4]);
       ctx.beginPath();
       s.data.forEach((v, i) => {
         const x = pad.l + (pw * i) / (labels.length - 1);
@@ -1443,95 +1741,59 @@
         else ctx.lineTo(x, y);
       });
       ctx.stroke();
+      ctx.restore();
     });
 
-    // 범례
-    let lx = pad.l + 6;
+    let lx = pad.l + 4;
     ctx.textAlign = "left";
     series.forEach((s) => {
       ctx.fillStyle = s.color;
       ctx.fillRect(lx, 6, 12, 8);
       ctx.fillStyle = "#222";
-      ctx.fillText(s.name, lx + 16, 14);
-      lx += ctx.measureText(s.name).width + 34;
-    });
-  }
-
-  function drawBarChart(canvasId, labels, values) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement.getBoundingClientRect();
-    if (rect.width === 0) return;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext("2d");
-    ctx.scale(dpr, dpr);
-
-    const W = rect.width, H = rect.height;
-    const pad = { l: 58, r: 14, t: 20, b: 28 };
-    const pw = W - pad.l - pad.r;
-    const ph = H - pad.t - pad.b;
-
-    ctx.clearRect(0, 0, W, H);
-    const maxVal = Math.max(1, ...values);
-
-    ctx.strokeStyle = "#e5e7eb";
-    ctx.fillStyle = "#555";
-    ctx.font = "11px '맑은 고딕'";
-    ctx.textAlign = "right";
-    for (let i = 0; i <= 4; i++) {
-      const y = pad.t + ph - (ph * i) / 4;
-      const v = (maxVal * i) / 4;
-      ctx.beginPath();
-      ctx.moveTo(pad.l, y);
-      ctx.lineTo(W - pad.r, y);
-      ctx.stroke();
-      ctx.fillText(fmtShortWon(v), pad.l - 6, y + 4);
-    }
-
-    const bw = (pw / values.length) * 0.58;
-    ctx.textAlign = "center";
-    values.forEach((v, i) => {
-      const cx = pad.l + (pw * (i + 0.5)) / values.length;
-      const bh = (ph * Math.max(0, v)) / maxVal;
-      ctx.fillStyle = "#1f4e78";
-      ctx.fillRect(cx - bw / 2, pad.t + ph - bh, bw, bh);
-      ctx.fillStyle = "#444";
-      ctx.fillText(labels[i], cx, H - 8);
+      ctx.fillText(s.name, lx + 15, 14);
+      lx += ctx.measureText(s.name).width + 26;
     });
   }
 
   function drawAllCharts() {
-    if (activeSheet !== 1 || !simResult) return;
-    const R = simResult;
+    if (activeSheet !== 1 || !simDual || !simBrkOnly) return;
+    const D = simDual;
+    const B = simBrkOnly;
+
     drawLineChart(
       "chart-acc",
-      R.s2Rows.map((r) => r.t + "년"),
+      D.s2Rows.map((r) => r.t + "년"),
       [
-        { name: "기말 총자산", color: "#107c41", data: R.s2Rows.map((r) => r.totEnd) },
-        { name: "누적 원금", color: "#6b7280", data: R.s2Rows.map((r) => r.cumPrincipal) }
+        { name: "합산 총자산", color: "#107c41", data: D.s2Rows.map((r) => r.totEnd) },
+        { name: "개인연금 자산", color: "#0284c7", data: D.s2Rows.map((r) => r.penEnd) },
+        { name: "누적 원금", color: "#6b7280", data: D.s2Rows.map((r) => r.cumTotPrincipal), dashed: true }
       ],
-      R.N - 1
+      D.N - 1
     );
+
     drawLineChart(
       "chart-dec",
-      R.s3Rows.map((r) => r.k + "년"),
+      D.s3Rows.map((r) => r.k + "년"),
       [
-        { name: "기말 자산 잔액", color: "#1f4e78", data: R.s3Rows.map((r) => r.endAsset) },
-        { name: "연간 생활비", color: "#dc2626", data: R.s3Rows.map((r) => r.yrSpend) }
+        { name: "연금+위탁 병행 잔액", color: "#107c41", data: D.s3Rows.map((r) => r.endTot), width: 2.6 },
+        { name: "100% 위탁 단독 잔액", color: "#6366f1", data: B.s3Rows.map((r) => r.endTot), dashed: true },
+        { name: "연간 생활비", color: "#dc2626", data: D.s3Rows.map((r) => r.yrSpend), width: 1.6 }
       ],
       null
     );
-    const mYears = [1, 3, 5, 10, 15, 20, 30, 40, 50];
-    drawBarChart(
-      "chart-div",
-      mYears.map((y) => y + "년"),
-      mYears.map((y) => R.s2Rows[y - 1].totDiv)
+
+    drawLineChart(
+      "chart-tax",
+      D.s3Rows.map((r) => r.k + "년"),
+      [
+        { name: "100% 위탁 단독 세금", color: "#dc2626", data: B.s3Rows.map((r) => r.yrTotalTax), dashed: true },
+        { name: "연금+위탁 병행 세금", color: "#0f5f5c", data: D.s3Rows.map((r) => r.yrTotalTax), width: 2.4 }
+      ],
+      null
     );
   }
 
-  // ===================== 시트 전환 / 프리셋 / CSV 내보내기 =====================
+  // ===================== 시트 전환 / 프리셋 / 공유 =====================
   function switchSheet(idx) {
     activeSheet = idx;
     [1, 2, 3].forEach((n) => {
@@ -1543,20 +1805,19 @@
 
   function applyPreset(type) {
     state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-    if (type === "optimistic") {
-      state.etfs[0].g = 17.0; state.etfs[0].dg = 10.0;
-      state.etfs[1].g = 12.0; state.etfs[1].dg = 6.0;
-      state.etfs[2].g = 8.0;  state.etfs[2].dg = 11.0;
-      state.etfs[3].g = 30.0; state.etfs[3].dg = 0.0;
-    } else if (type === "deplete") {
-      state.retSpend = 15000000;
+    if (type === "pen1800") {
+      state.penCapMan = 1800;
+    } else if (type === "pen1200") {
+      state.penCapMan = 1200;
+    } else if (type === "onlyBroker") {
+      state.penCapMan = 0;
     }
     syncInputsFromState();
     recalcAll();
   }
 
   function saveToStorage() {
-    localStorage.setItem("etf_retire_sim_state_v1", JSON.stringify(state));
+    localStorage.setItem("etf_retire_sim_state_v2", JSON.stringify(state));
     document.getElementById("status-calc").textContent = "✅ 브라우저에 현재 설정이 저장되었습니다.";
   }
 
@@ -1578,7 +1839,7 @@
         state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
         return;
       }
-      const raw = localStorage.getItem("etf_retire_sim_state_v1");
+      const raw = localStorage.getItem("etf_retire_sim_state_v2");
       if (raw) state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), JSON.parse(raw));
     } catch (e) {}
   }
@@ -1599,11 +1860,10 @@
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `노후준비_ETF_시뮬레이터_Sheet${activeSheet}.csv`;
+    a.download = `노후준비_ETF_연금절세_시뮬레이터_Sheet${activeSheet}.csv`;
     a.click();
   }
 
-  // 수식 입력줄 호버/클릭 연동
   document.addEventListener("mouseover", (e) => {
     const cell = e.target.closest("[data-cell]");
     if (cell) {
@@ -1614,10 +1874,9 @@
 
   window.addEventListener("resize", () => drawAllCharts());
 
-  // 초기화 실행
   loadFromStorage();
   syncInputsFromState();
-  bindBasicInputs();
+  bindInputs();
   recalcAll();
 </script>
 </body>
